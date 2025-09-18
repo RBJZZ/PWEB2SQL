@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - World Cup 2026 Connect</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="form-wrapper">
+        <div class="logo-container">
+            <h2>World Cup Connect</h2>
+        </div>
+        
+        <form id="loginForm">
+            <h1><i class="fa-solid fa-futbol"></i> Iniciar Sesión</h1>
+            <div class="input-group">
+                <input type="email" id="email" required>
+                <label for="email">Correo Electrónico</label>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" required>
+                <label for="password">Contraseña</label>
+            </div>
+            <button type="submit" class="btn-main">Entrar</button>
+
+            <p>¿Aún no eres parte del equipo? <a href="registro.html">Regístrate</a></p>
+            <p id="message" style="color: #00f2ea; margin-top: 15px;"></p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageEl = document.getElementById('message');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageEl.textContent = data.message;
+                    messageEl.style.color = '#00f2ea';
+                    // Aquí podrías redirigir a una página de bienvenida, por ejemplo.
+                } else {
+                    messageEl.textContent = data.message;
+                    messageEl.style.color = '#ff00ff';
+                }
+
+            } catch (error) {
+                messageEl.textContent = 'Error de conexión. Inténtalo de nuevo.';
+                messageEl.style.color = '#ff00ff';
+            }
+        });
+    </script>
+</body>
+</html>
