@@ -1,0 +1,163 @@
+/* --- Importación de Fuentes --- */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&display=swap');
+
+/* --- Estilos Generales --- */
+body {
+    font-family: 'Exo 2', sans-serif;
+    margin: 0;
+    /* Fondo de estadio con un overlay oscuro para que el contenido resalte */
+    background-image: linear-gradient(rgba(10, 0, 20, 0.85), rgba(10, 0, 20, 0.85)), url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1935&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.form-wrapper {
+    width: 400px;
+    background: rgba(20, 20, 30, 0.7); /* Fondo de cristal esmerilado */
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 30px 40px;
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.3); /* Sombra neón */
+}
+
+/* --- Logo --- */
+.logo-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.logo-container img {
+    width: 150px;
+    margin-bottom: 5px;
+}
+
+.logo-container h2 {
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #eee;
+}
+
+/* --- Formulario --- */
+h1 {
+    text-align: center;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 25px;
+}
+
+h1 .fa-futbol {
+    color: #00f2ea; /* Color cian neón */
+    margin-right: 10px;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 35px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+    outline: none;
+    color: #fff;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.input-group label {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    color: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    transition: all 0.3s;
+}
+
+.input-group input:focus ~ label,
+.input-group input:valid ~ label {
+    top: -15px;
+    font-size: 12px;
+    color: #ff00ff; /* Fucsia neón para el enfoque */
+}
+
+.input-group input:focus {
+    border-bottom-color: #ff00ff; /* Fucsia neón */
+}
+
+/* --- Botones --- */
+.btn-main {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #111;
+    /* Gradiente vibrante inspirado en los colores de las sedes */
+    background: linear-gradient(90deg, #00f2ea, #ff00ff);
+    background-size: 200%;
+    transition: background-position 0.5s;
+}
+
+.btn-main:hover {
+    background-position: right;
+    box-shadow: 0 0 20px #ff00ff;
+}
+
+/* --- Divisor y Login Social --- */
+.divider {
+    text-align: center;
+    margin: 20px 0;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.social-login {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-social {
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-social .fa-brands {
+    margin-right: 10px;
+}
+
+.btn-social.google:hover { background-color: #db4437; }
+.btn-social.facebook:hover { background-color: #3b5998; }
+
+/* --- Enlace final --- */
+p {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+}
+
+a {
+    color: #00f2ea; /* Cian neón */
+    text-decoration: none;
+    font-weight: 700;
+}
+
+a:hover {
+    text-decoration: underline;
+}
