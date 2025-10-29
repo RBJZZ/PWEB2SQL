@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - World Cup 2026 Connect</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="form-wrapper">
+        <div class="logo-container">
+            <h2>World Cup Connect</h2>
+        </div>
+        
+        <form id="registerForm">
+            <h1><i class="fa-solid fa-user-plus"></i> Crear Cuenta</h1>
+
+            <div class="input-group">
+                <input type="text" id="username" required>
+                <label for="username">Nombre de Usuario</label>
+            </div>
+
+            <div class="input-group">
+                <input type="email" id="email" required>
+                <label for="email">Correo Electrónico</label>
+            </div>
+            
+            <div class="input-group">
+                <input type="password" id="password" required>
+                <label for="password">Contraseña</label>
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="confirm-password" required>
+                <label for="confirm-password">Confirmar Contraseña</label>
+            </div>
+            
+            <button type="submit" class="btn-main">Registrarse</button>
+
+            <p>¿Ya eres parte del equipo? <a href="index.html">Inicia Sesión</a></p>
+            <p id="message" style="color: #00f2ea; margin-top: 15px;"></p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (event) => {
+            event.preventDefault(); // Evita que el formulario se envíe de la forma tradicional
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const messageEl = document.getElementById('message');
+
+            if (password !== confirmPassword) {
+                messageEl.textContent = 'Las contraseñas no coinciden.';
+                messageEl.style.color = '#ff00ff';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) { // Status 200-299
+                    messageEl.textContent = data.message;
+                    messageEl.style.color = '#00f2ea'; // Color cian para éxito
+                    setTimeout(() => {
+                        window.location.href = 'index.html'; // Redirigir al login tras 2 segundos
+                    }, 2000);
+                } else {
+                    messageEl.textContent = data.message;
+                    messageEl.style.color = '#ff00ff'; // Color fucsia para error
+                }
+
+            } catch (error) {
+                messageEl.textContent = 'Error de conexión. Inténtalo de nuevo.';
+                messageEl.style.color = '#ff00ff';
+            }
+        });
+    </script>
+</body>
+</html>

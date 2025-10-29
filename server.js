@@ -1,30 +1,24 @@
-// 1. Importar dependencias
 const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
-const cors = require('cors'); // Para permitir peticiones desde el frontend
+const cors = require('cors'); 
 const path = require('path');
-const sequelize = require('./database');
-const User = require('./models/user');
+const sequelize = require('./backend/database');
+const User = require('./backend/models/user');
 
-// 2. Configurar el servidor Express
 const app = express();
 const port = 3000;
 
 // Middleware
-app.use(cors()); // Habilita CORS para todas las rutas
-app.use(bodyParser.json()); // AHORA USAMOS JSON
-app.use(express.static(path.join(__dirname, '../frontend'))); // Servir archivos estáticos del frontend
+app.use(cors()); 
+app.use(bodyParser.json()); 
+app.use(express.static(path.join(__dirname, 'frontend')));
 
-// 3. Sincronizar la base de datos
-// Esto crea la tabla si no existe, basado en tu modelo de Sequelize
 sequelize.sync()
     .then(() => console.log('Tabla de usuarios sincronizada.'))
     .catch(error => console.error('Error al sincronizar la tabla:', error));
 
-// 4. Rutas de la API
 
-// --- Ruta para el registro de usuarios ---
 app.post('/api/register', async (req, res) => {
     const { username, email, password } = req.body;
 
@@ -82,7 +76,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 5. Iniciar el servidor
+
 app.listen(port, () => {
     console.log(`Servidor API corriendo en http://localhost:${port}`);
 });
