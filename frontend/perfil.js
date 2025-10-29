@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const coverPreview = document.getElementById('cover-preview');
     const modalMessage = document.getElementById('edit-modal-message');
 
-     async function loadProfileData() {
+    async function loadProfileData() {
         try {
             const response = await fetch(`http://localhost:3000/api/users/${targetUserId}`);
             if (!response.ok) throw new Error('Usuario no encontrado.');
@@ -133,14 +133,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 editProfileModal.style.display = 'none';
             }
         });
-
         avatarFileInput.addEventListener('change', () => {
             const file = avatarFileInput.files[0];
             if (file) {
-                // Usamos FileReader para mostrar la imagen localmente antes de subirla
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     avatarPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        coverFileInput.addEventListener('change', () => {
+            const file = coverFileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    coverPreview.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
@@ -152,8 +161,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function openEditModal() {
         usernameInput.value = userData.username;
         const serverUrl = 'http://localhost:3000';
-        avatarPreview.src = userData.foto_perfil_url ? `${serverUrl}${userData.foto_perfil_url}` : 'https://i.pravatar.cc/150';
+        
+        if (userData.foto_perfil_url) {
+            avatarPreview.src = `${serverUrl}${userData.foto_perfil_url}`;
+        } else {
+            avatarPreview.src = 'https://i.pravatar.cc/150'; 
+        }
         avatarFileInput.value = ''; 
+
+        if (userData.foto_portada_url) {
+            coverPreview.src = `${serverUrl}${userData.foto_portada_url}`;
+        } else {
+            coverPreview.src = 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=400&auto=format&fit=crop';
+        }
+        coverFileInput.value = '';
+
         modalMessage.textContent = '';
         editProfileModal.style.display = 'flex';
     }
@@ -161,34 +183,23 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleProfileUpdate(event) {
         event.preventDefault();
         modalMessage.textContent = '';
-
         const formData = new FormData();
         formData.append('username', usernameInput.value);
-
         if (avatarFileInput.files[0]) {
             formData.append('avatar', avatarFileInput.files[0]);
         }
-
+        if (coverFileInput.files[0]) {
+            formData.append('cover', coverFileInput.files[0]);
+        }
         try {
             const response = await fetch(`http://localhost:3000/api/users/${currentUser.id}`, {
                 method: 'PUT',
                 body: formData 
             });
-
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
-
             editProfileModal.style.display = 'none';
-            const serverUrl = 'http://localhost:3000';
-            const newAvatarUrl = result.user.foto_perfil_url ? `${serverUrl}${result.user.foto_perfil_url}` : 'https://i.pravatar.cc/150';
-            
-            document.querySelector('.profile-avatar').src = newAvatarUrl;
-            document.getElementById('user-avatar-top').src = newAvatarUrl;
-            document.querySelector('.profile-name').textContent = result.user.username;
-
-            userData.username = result.user.username;
-            userData.foto_perfil_url = result.user.foto_perfil_url;
-
+            loadProfileData(); 
         } catch (error) {
             modalMessage.style.color = 'red';
             modalMessage.textContent = `Error: ${error.message}`;

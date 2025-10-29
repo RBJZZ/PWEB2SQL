@@ -36,22 +36,48 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const authorAvatar = author.foto_perfil_url ? `${serverUrl}${author.foto_perfil_url}` : `https://i.pravatar.cc/40?u=${author.username}`;
         
-        const optionsHTML = options.map(op => {
+        let optionsHTML = '';
+        const hasImages = options.some(op => op.imagen_url);
+
+        if (hasImages) {
             if (pub.currentUserHasVoted) {
                 const totalVotes = options.reduce((sum, op) => sum + (parseInt(op.votosCount) || 0), 0);
-                const percentage = totalVotes > 0 ? ((op.votosCount / totalVotes) * 100).toFixed(1) : 0;
-                return `
+                optionsHTML = `<div class="post-options-images results">` + options.map(op => {
+                    const percentage = totalVotes > 0 ? ((op.votosCount / totalVotes) * 100).toFixed(1) : 0;
+                    return `
+                        <div class="image-option-card">
+                            <div class="result-overlay" style="width: ${percentage}%;"></div>
+                            <span class="result-percentage">${percentage}%</span>
+                            <img src="${serverUrl}${op.imagen_url}" alt="${op.texto_opcion}">
+                            <div class="option-text-overlay">${op.texto_opcion}</div>
+                        </div>`;
+                }).join('') + `</div>`;
+            } else {
+                optionsHTML = `<div class="post-options-images">` + options.map(op => `
+                    <div class="image-option-card votable" data-option-id="${op.id}">
+                        <img src="${serverUrl}${op.imagen_url}" alt="${op.texto_opcion}">
+                        <div class="option-text-overlay">${op.texto_opcion}</div>
+                    </div>
+                `).join('') + `</div>`;
+            }
+        } else {
+            if (pub.currentUserHasVoted) {
+                const totalVotes = options.reduce((sum, op) => sum + (parseInt(op.votosCount) || 0), 0);
+                optionsHTML = options.map(op => {
+                    const percentage = totalVotes > 0 ? ((op.votosCount / totalVotes) * 100).toFixed(1) : 0;
+                    return `
                     <div class="option-result-bar">
                         <div class="percentage-bar" style="width: ${percentage}%;"></div>
                         <span class="option-text">${op.texto_opcion}</span>
                         <span class="percentage-text">${percentage}%</span>
                     </div>`;
+                }).join('');
             } else {
-                return `<button class="option-btn" data-option-id="${op.id}">${op.texto_opcion}</button>`;
+                optionsHTML = `<div class="post-options-grid">` + options.map(op => 
+                    `<button class="option-btn" data-option-id="${op.id}">${op.texto_opcion}</button>`
+                ).join('') + `</div>`;
             }
-        }).join('');
-        
-        const optionsContainerClass = pub.currentUserHasVoted ? '' : 'post-options-grid';
+        }
 
         const commentsHTML = comments.map(com => {
             const commentAuthor = com.User || { username: 'Anónimo', foto_perfil_url: null };
@@ -73,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <a href="perfil.html?id=${author.id}" class="post-link-header"><span class="post-author">@${author.username}</span></a>
                 </div>
                 <p class="post-question">${pub.texto_pregunta}</p>
-                <div id="options-container" class="${optionsContainerClass}">${optionsHTML}</div>
+                <div id="options-container">${optionsHTML}</div>
             </div>
             <div class="comments-section">
                 <h3>Comentarios</h3>
@@ -134,8 +160,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const optionsContainer = document.getElementById('options-container');
         if (optionsContainer) {
             optionsContainer.addEventListener('click', async (e) => {
-                if (e.target.matches('.option-btn')) {
-                    const optionId = e.target.dataset.optionId;
+                const votableElement = e.target.closest('.votable, .option-btn');
+                if (votableElement) {
+                    const optionId = votableElement.dataset.optionId;
                     try {
                         await fetch('http://localhost:3000/api/votos', {
                             method: 'POST',
@@ -150,6 +177,5 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     }
-
     fetchPost();
 });

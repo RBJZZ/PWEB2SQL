@@ -13,6 +13,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false
     },
+    imagen_url: {
+        type: DataTypes.STRING(512),
+        allowNull: true // Permite que sea nulo para opciones de solo texto
+    },
     es_correcta: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

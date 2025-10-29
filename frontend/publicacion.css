@@ -1,3 +1,13 @@
+#post-detail-container {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 120px); 
+}
+
+.post {
+    flex-shrink: 0;
+}
+
 .option-result-bar {
     background-color: #f0f2f5;
     border-radius: 20px;
@@ -6,7 +16,6 @@
     margin-bottom: 10px;
     border: 1px solid #ccd0d5;
 }
-
 .percentage-bar {
     position: absolute;
     top: 0;
@@ -17,7 +26,6 @@
     z-index: 1;
     transition: width 0.5s ease-in-out;
 }
-
 .option-text {
     position: relative;
     z-index: 2;
@@ -25,7 +33,6 @@
     font-weight: 600;
     color: #1c1e21;
 }
-
 .percentage-text {
     position: absolute;
     right: 15px;
@@ -36,65 +43,73 @@
     color: #1c1e21;
 }
 
-/* --- Estilos para la Sección de Comentarios --- */
 .comments-section {
-    margin-top: 30px;
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+    min-height: 0; 
+    margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid #e4e6eb;
 }
 
+
+.comments-section h3, .comment-form {
+    flex-shrink: 0;
+}
+
 .comments-section h3 {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    padding-left: 10px;
+}
+
+#comments-list {
+    flex-grow: 1; 
+    overflow-y: auto;
+    padding: 0 15px; 
 }
 
 .comment {
     display: flex;
     gap: 12px;
     margin-bottom: 15px;
-    align-items: flex-start; /* Alinea el avatar con la parte superior del comentario */
+    align-items: flex-start;
 }
-
-/* LA SOLUCIÓN a la imagen gigante */
 .comment-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    object-fit: cover; /* Asegura que la imagen no se deforme */
-    flex-shrink: 0; /* Evita que la imagen se encoja */
+    object-fit: cover;
+    flex-shrink: 0;
 }
-
 .comment-body {
     background-color: #f0f2f5;
     border-radius: 18px;
     padding: 10px 15px;
     flex-grow: 1;
 }
-
 .comment-author-link {
     font-weight: bold;
     font-size: 0.9rem;
     color: #050505;
     text-decoration: none;
 }
-
 .comment-author-link:hover {
     text-decoration: underline;
 }
-
 .comment-text {
     font-size: 0.95rem;
-    margin: 4px 0 0 0; /* Ajusta el espaciado */
-    word-wrap: break-word; /* Asegura que el texto largo no se desborde */
+    margin: 4px 0 0 0;
+    word-wrap: break-word;
 }
 
-/* Estilos para el formulario de comentario */
 .comment-form {
     display: flex;
     gap: 10px;
-    margin-top: 20px;
+    padding: 15px 10px 10px 10px; 
+    border-top: 1px solid #e4e6eb;
     align-items: center;
 }
-
 .comment-input {
     flex-grow: 1;
     border: 1px solid #ccd0d5;
@@ -103,8 +118,34 @@
     font-family: 'Exo 2', sans-serif;
     font-size: 1rem;
 }
-
 .comment-input:focus {
     outline: none;
     border-color: #4a00e0;
+}
+
+.post-options-images.results .image-option-card {
+    cursor: default;
+    border-color: #ddd;
+}
+.post-options-images.results .image-option-card:hover {
+    border-color: #ddd; 
+}
+.result-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: rgba(142, 45, 226, 0.7); 
+    z-index: 1;
+    transition: width 0.5s ease;
+}
+.result-percentage {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    z-index: 3;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }

@@ -17,7 +17,7 @@ const Comentario = db.Comentario;
 const app = express();
 const port = 3000;
 
-// Middleware
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, 'backend/uploads')));
@@ -28,8 +28,8 @@ const storage = multer.diskStorage({
         cb(null, path.join(__dirname, 'backend/uploads/'));
     },
     filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + path.extname(file.originalname);
-        cb(null, 'user-' + req.params.id + '-' + uniqueSuffix);
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
@@ -44,7 +44,6 @@ const upload = multer({
     }
 });
 
-// --- Ruta para el Registro de Usuarios ---
 app.post('/api/register', async (req, res) => {
     const { username, email, password } = req.body;
     if (!username || !email || !password) {
@@ -52,7 +51,6 @@ app.post('/api/register', async (req, res) => {
     }
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        // CAMBIO CLAVE: Usamos 'password_hash' para que coincida con el modelo actualizado.
         const newUser = await User.create({
             username,
             email,
@@ -67,7 +65,6 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// --- Ruta de Inicio de Sesión ---
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -78,7 +75,6 @@ app.post('/api/login', async (req, res) => {
         if (!user) {
             return res.status(401).json({ message: 'Email o contraseña incorrectos.' });
         }
-        // CAMBIO CLAVE: Leemos 'user.password_hash' porque así se llama ahora en el objeto.
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (isMatch) {
             res.status(200).json({
@@ -176,9 +172,9 @@ app.get('/api/publicaciones', async (req, res) => {
     }
 });
 
-// --- Ruta para crear una nueva publicación ---
-app.post('/api/publicaciones', async (req, res) => {
-    const { usuario_id, texto_pregunta, opciones } = req.body;
+app.post('/api/publicaciones', upload.array('option_images', 4), async (req, res) => {
+    const { usuario_id, texto_pregunta, opciones: opcionesJSON } = req.body;
+    const opciones = JSON.parse(opcionesJSON);
 
     if (!usuario_id || !texto_pregunta || !opciones || opciones.length < 2) {
         return res.status(400).json({ message: 'Datos incompletos para crear la publicación.' });
@@ -192,11 +188,19 @@ app.post('/api/publicaciones', async (req, res) => {
             texto_pregunta
         }, { transaction: t });
 
-        const opcionesACrear = opciones.map(opcion => ({
-            publicacion_id: nuevaPublicacion.id,
-            texto_opcion: opcion.texto,
-            es_correcta: opcion.es_correcta || false
-        }));
+        const opcionesACrear = opciones.map((opcion, index) => {
+            let imageUrl = null;
+            if (req.files && req.files[index]) {
+                imageUrl = `/uploads/${req.files[index].filename}`;
+            }
+
+            return {
+                publicacion_id: nuevaPublicacion.id,
+                texto_opcion: opcion.texto,
+                imagen_url: imageUrl, 
+                es_correcta: opcion.es_correcta || false
+            };
+        });
 
         await Opcion.bulkCreate(opcionesACrear, { transaction: t });
 
@@ -205,6 +209,7 @@ app.post('/api/publicaciones', async (req, res) => {
 
     } catch (error) {
         await t.rollback();
+        console.error("Error al crear publicación con imagen:", error);
         res.status(500).json({ message: 'Error al crear la publicación.', error: error.message });
     }
 });
@@ -263,11 +268,9 @@ app.get('/api/publicaciones/:id', async (req, res) => {
 });
 
 
-// --- RUTA PARA VOTAR ---
 app.post('/api/votos', async (req, res) => {
     const { usuario_id, opcion_id } = req.body;
     try {
-        // Lógica para evitar doble voto (opcional, la BD ya tiene una constraint)
         const newVoto = await Voto.create({ usuario_id, opcion_id });
         res.status(201).json(newVoto);
     } catch (error) {
@@ -275,7 +278,6 @@ app.post('/api/votos', async (req, res) => {
     }
 });
 
-// --- RUTA PARA COMENTAR ---
 app.post('/api/comentarios', async (req, res) => {
     const { usuario_id, publicacion_id, texto_comentario } = req.body;
     if (!usuario_id || !publicacion_id || !texto_comentario) {

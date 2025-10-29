@@ -9,14 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedContainer = document.getElementById('feed-container');
     const createPostBtn = document.getElementById('create-post-btn');
     const modal = document.getElementById('create-post-modal');
-    const closeModalBtn = document.querySelector('.close-modal-btn');
+    const closeModalBtn = modal.querySelector('.close-modal-btn');
     const createPostForm = document.getElementById('createPostForm');
     const modalMessage = document.getElementById('modal-message');
     const optionsContainer = document.getElementById('options-container');
     const addOptionBtn = document.getElementById('add-option-btn');
     const pollTypeSelect = document.getElementById('poll-type');
 
-    // --- Functions ---
+    // --- Lógica de Renderizado del Feed ---
     async function fetchPublicaciones() {
         try {
             const response = await fetch('http://localhost:3000/api/publicaciones');
@@ -29,33 +29,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-           data.forEach(pub => {
+            data.forEach(pub => {
                 const postElement = document.createElement('div');
                 postElement.className = 'post';
                 
-                const optionsHTML = Array.isArray(pub.Opcions) 
-                    ? pub.Opcions.map(op => `<button class="option-btn" disabled>${op.texto_opcion}</button>`).join('') 
-                    : '';
-                
                 const authorUsername = pub.User ? pub.User.username : 'Anónimo';
                 const authorId = pub.User ? pub.User.id : '#';
-
                 const serverUrl = 'http://localhost:3000';
                 const avatarUrl = pub.User && pub.User.foto_perfil_url
                     ? `${serverUrl}${pub.User.foto_perfil_url}`
                     : `https://i.pravatar.cc/40?u=${authorUsername}`;
 
+                // --- LÓGICA DE OPCIONES (IMAGEN VS TEXTO) ---
+                let optionsHTML = '';
+                const hasImages = pub.Opcions.some(op => op.imagen_url);
+
+                if (hasImages) {
+                    optionsHTML = `<div class="post-options-images">` + pub.Opcions.map(op => `
+                        <div class="image-option-card">
+                            <img src="${serverUrl}${op.imagen_url}" alt="${op.texto_opcion}">
+                            <div class="option-text-overlay">${op.texto_opcion}</div>
+                        </div>
+                    `).join('') + `</div>`;
+                } else {
+                    optionsHTML = `<div class="post-options-grid">` + pub.Opcions.map(op => 
+                        `<button class="option-btn" disabled>${op.texto_opcion}</button>`
+                    ).join('') + `</div>`;
+                }
+                // --- FIN DE LA LÓGICA DE OPCIONES ---
+
                 postElement.innerHTML = `
                     <a href="perfil.html?id=${authorId}" class="post-link-header">
                         <div class="post-header">
-                            <!-- Usamos la nueva variable avatarUrl -->
                             <img src="${avatarUrl}" alt="avatar" class="post-avatar">
                             <span class="post-author">@${authorUsername}</span>
                         </div>
                     </a>
                     <a href="publicacion.html?id=${pub.id}" class="post-link-body">
                         <p class="post-question">${pub.texto_pregunta}</p>
-                        <div class="post-options-grid">${optionsHTML}</div>
+                        ${optionsHTML}
                     </a>
                     <div class="post-actions">
                         <i class="fa-regular fa-comment"></i>
@@ -69,33 +81,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function createOptionInput(optionNumber, isQuiz) {
+    // --- Lógica del Modal de Creación ---
+    
+    function createOptionInput(optionNumber, pollType) {
         const div = document.createElement('div');
         div.className = 'modal-option-group';
-        
-        let quizInputHTML = isQuiz ? `<input type="radio" name="correct_answer" value="${optionNumber-1}" class="correct-answer-radio" title="Marcar como correcta">` : '';
 
-        div.innerHTML = `
-            ${quizInputHTML}
-            <input type="text" class="option-input" placeholder="Opción ${optionNumber}" required>
-        `;
+        if (pollType === 'image') {
+            div.classList.add('image-poll');
+            div.innerHTML = `
+                <div class="image-preview-container">
+                    <img class="option-image-preview" id="preview-${optionNumber}" src="#" alt="Vista previa">
+                </div>
+                <input type="text" class="option-input" placeholder="Descripción de la opción ${optionNumber}" required>
+                <input type="file" class="option-image-input" accept="image/*" data-preview-id="preview-${optionNumber}">
+            `;
+        } else { // 'text'
+            div.innerHTML = `<input type="text" class="option-input" placeholder="Opción ${optionNumber}" required>`;
+        }
         return div;
     }
 
     function renderOptionInputs() {
-        const isQuiz = pollTypeSelect.value === 'quiz';
+        const pollType = pollTypeSelect.value;
         optionsContainer.innerHTML = '';
-        optionsContainer.appendChild(createOptionInput(1, isQuiz));
-        optionsContainer.appendChild(createOptionInput(2, isQuiz));
+        optionsContainer.appendChild(createOptionInput(1, pollType));
+        optionsContainer.appendChild(createOptionInput(2, pollType));
     }
+    
+    optionsContainer.addEventListener('change', (e) => {
+        if (e.target.classList.contains('option-image-input')) {
+            const previewId = e.target.dataset.previewId;
+            const previewImg = document.getElementById(previewId);
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    previewImg.src = event.target.result;
+                    previewImg.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    });
 
-    // --- Event Listeners ---
     createPostBtn.addEventListener('click', () => {
         createPostForm.reset();
         modalMessage.textContent = '';
         renderOptionInputs();
         modal.style.display = 'flex';
     });
+
     closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
     window.addEventListener('click', (event) => { if (event.target === modal) modal.style.display = 'none'; });
     pollTypeSelect.addEventListener('change', renderOptionInputs);
@@ -103,7 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
     addOptionBtn.addEventListener('click', () => {
         const count = optionsContainer.children.length;
         if (count < 4) {
-            optionsContainer.appendChild(createOptionInput(count + 1, pollTypeSelect.value === 'quiz'));
+            const pollType = pollTypeSelect.value;
+            optionsContainer.appendChild(createOptionInput(count + 1, pollType));
         }
     });
 
@@ -111,30 +148,39 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         modalMessage.textContent = '';
         
-        const texto_pregunta = document.getElementById('post-question').value;
-        const optionInputs = document.querySelectorAll('.option-input');
-        const correctAnswerRadio = document.querySelector('input[name="correct_answer"]:checked');
-        const correctIndex = correctAnswerRadio ? parseInt(correctAnswerRadio.value) : -1;
+        const formData = new FormData();
+        formData.append('usuario_id', currentUser.id);
+        formData.append('texto_pregunta', document.getElementById('post-question').value);
 
-        const opciones = Array.from(optionInputs).map((input, index) => ({
-            texto: input.value,
-            es_correcta: index === correctIndex
-        }));
+        const optionTextInputs = document.querySelectorAll('.option-input');
+        const optionImageInputs = document.querySelectorAll('.option-image-input');
+
+        const opciones = Array.from(optionTextInputs).map(input => ({ texto: input.value, es_correcta: false }));
 
         if (opciones.some(op => !op.texto.trim()) || opciones.length < 2) {
-            modalMessage.textContent = 'Debes rellenar al menos 2 opciones.';
+            modalMessage.textContent = 'Debes rellenar el texto de al menos 2 opciones.';
             return;
         }
-        if (pollTypeSelect.value === 'quiz' && correctIndex === -1) {
-            modalMessage.textContent = 'En un Quiz, debes seleccionar una respuesta correcta.';
-            return;
+
+        if (pollTypeSelect.value === 'image') {
+            const hasAtLeastTwoImages = Array.from(optionImageInputs).filter(input => input.files[0]).length >= 2;
+            if (!hasAtLeastTwoImages) {
+                modalMessage.textContent = 'Para una encuesta de imagen, debes seleccionar al menos 2 imágenes.';
+                return;
+            }
+            optionImageInputs.forEach(input => {
+                if (input.files[0]) {
+                    formData.append('option_images', input.files[0]);
+                }
+            });
         }
+        
+        formData.append('opciones', JSON.stringify(opciones));
 
         try {
             const response = await fetch('http://localhost:3000/api/publicaciones', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario_id: currentUser.id, texto_pregunta, opciones })
+                body: formData
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message);
@@ -147,6 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Initial Load ---
+    // --- Carga Inicial ---
     fetchPublicaciones();
 });
