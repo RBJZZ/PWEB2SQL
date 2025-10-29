@@ -1,0 +1,110 @@
+.option-result-bar {
+    background-color: #f0f2f5;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 10px;
+    border: 1px solid #ccd0d5;
+}
+
+.percentage-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #bca1f7 0%, #7f57f1 100%);
+    border-radius: 20px;
+    z-index: 1;
+    transition: width 0.5s ease-in-out;
+}
+
+.option-text {
+    position: relative;
+    z-index: 2;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: #1c1e21;
+}
+
+.percentage-text {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    font-weight: 600;
+    color: #1c1e21;
+}
+
+/* --- Estilos para la Sección de Comentarios --- */
+.comments-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e4e6eb;
+}
+
+.comments-section h3 {
+    margin-bottom: 20px;
+}
+
+.comment {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15px;
+    align-items: flex-start; /* Alinea el avatar con la parte superior del comentario */
+}
+
+/* LA SOLUCIÓN a la imagen gigante */
+.comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover; /* Asegura que la imagen no se deforme */
+    flex-shrink: 0; /* Evita que la imagen se encoja */
+}
+
+.comment-body {
+    background-color: #f0f2f5;
+    border-radius: 18px;
+    padding: 10px 15px;
+    flex-grow: 1;
+}
+
+.comment-author-link {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #050505;
+    text-decoration: none;
+}
+
+.comment-author-link:hover {
+    text-decoration: underline;
+}
+
+.comment-text {
+    font-size: 0.95rem;
+    margin: 4px 0 0 0; /* Ajusta el espaciado */
+    word-wrap: break-word; /* Asegura que el texto largo no se desborde */
+}
+
+/* Estilos para el formulario de comentario */
+.comment-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    align-items: center;
+}
+
+.comment-input {
+    flex-grow: 1;
+    border: 1px solid #ccd0d5;
+    border-radius: 20px;
+    padding: 10px 15px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1rem;
+}
+
+.comment-input:focus {
+    outline: none;
+    border-color: #4a00e0;
+}

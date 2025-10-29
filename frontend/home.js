@@ -38,14 +38,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     : '';
                 
                 const authorUsername = pub.User ? pub.User.username : 'Anónimo';
-                
-                // Se envuelve el contenido del post en una etiqueta <a>
+                const authorId = pub.User ? pub.User.id : '#';
+
+                const serverUrl = 'http://localhost:3000';
+                const avatarUrl = pub.User && pub.User.foto_perfil_url
+                    ? `${serverUrl}${pub.User.foto_perfil_url}`
+                    : `https://i.pravatar.cc/40?u=${authorUsername}`;
+
                 postElement.innerHTML = `
-                    <a href="publicacion.html?id=${pub.id}" class="post-link">
+                    <a href="perfil.html?id=${authorId}" class="post-link-header">
                         <div class="post-header">
-                            <img src="https://i.pravatar.cc/40?u=${authorUsername}" alt="avatar" class="post-avatar">
+                            <!-- Usamos la nueva variable avatarUrl -->
+                            <img src="${avatarUrl}" alt="avatar" class="post-avatar">
                             <span class="post-author">@${authorUsername}</span>
                         </div>
+                    </a>
+                    <a href="publicacion.html?id=${pub.id}" class="post-link-body">
                         <p class="post-question">${pub.texto_pregunta}</p>
                         <div class="post-options-grid">${optionsHTML}</div>
                     </a>

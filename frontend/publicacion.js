@@ -1,0 +1,155 @@
+document.addEventListener('DOMContentLoaded', async () => {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    const postContainer = document.getElementById('post-detail-container');
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get('id');
+
+    if (!postId) {
+        postContainer.innerHTML = '<p class="error-message">ID de publicación no encontrado.</p>';
+        return;
+    }
+
+    async function fetchPost() {
+        try {
+            const response = await fetch(`http://localhost:3000/api/publicaciones/${postId}?userId=${currentUser.id}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'No se pudo cargar la publicación');
+            }
+            const post = await response.json();
+            renderPost(post);
+        } catch (error) {
+            postContainer.innerHTML = `<p class="error-message">${error.message}</p>`;
+        }
+    }
+
+    function renderPost(pub) {
+        const author = pub.User || { username: 'Anónimo', foto_perfil_url: null };
+        const options = pub.Opcions || [];
+        const comments = pub.Comentarios || [];
+        const serverUrl = 'http://localhost:3000';
+
+        const authorAvatar = author.foto_perfil_url ? `${serverUrl}${author.foto_perfil_url}` : `https://i.pravatar.cc/40?u=${author.username}`;
+        
+        const optionsHTML = options.map(op => {
+            if (pub.currentUserHasVoted) {
+                const totalVotes = options.reduce((sum, op) => sum + (parseInt(op.votosCount) || 0), 0);
+                const percentage = totalVotes > 0 ? ((op.votosCount / totalVotes) * 100).toFixed(1) : 0;
+                return `
+                    <div class="option-result-bar">
+                        <div class="percentage-bar" style="width: ${percentage}%;"></div>
+                        <span class="option-text">${op.texto_opcion}</span>
+                        <span class="percentage-text">${percentage}%</span>
+                    </div>`;
+            } else {
+                return `<button class="option-btn" data-option-id="${op.id}">${op.texto_opcion}</button>`;
+            }
+        }).join('');
+        
+        const optionsContainerClass = pub.currentUserHasVoted ? '' : 'post-options-grid';
+
+        const commentsHTML = comments.map(com => {
+            const commentAuthor = com.User || { username: 'Anónimo', foto_perfil_url: null };
+            const commentAvatar = commentAuthor.foto_perfil_url ? `${serverUrl}${commentAuthor.foto_perfil_url}` : `https://i.pravatar.cc/32?u=${commentAuthor.username}`;
+            return `
+            <div class="comment">
+                <img src="${commentAvatar}" alt="avatar" class="comment-avatar">
+                <div class="comment-body">
+                    <a href="perfil.html?id=${commentAuthor.id}" class="comment-author-link">@${commentAuthor.username}</a>
+                    <p class="comment-text">${com.texto_comentario}</p>
+                </div>
+            </div>`;
+        }).join('');
+
+        const postHTML = `
+            <div class="post">
+                <div class="post-header">
+                    <img src="${authorAvatar}" alt="avatar" class="post-avatar">
+                    <a href="perfil.html?id=${author.id}" class="post-link-header"><span class="post-author">@${author.username}</span></a>
+                </div>
+                <p class="post-question">${pub.texto_pregunta}</p>
+                <div id="options-container" class="${optionsContainerClass}">${optionsHTML}</div>
+            </div>
+            <div class="comments-section">
+                <h3>Comentarios</h3>
+                <div id="comments-list">${commentsHTML}</div>
+                <form id="comment-form" class="comment-form">
+                    <input type="text" id="comment-input" class="comment-input" placeholder="Escribe un comentario..." required>
+                    <button type="submit" class="btn-create-post" style="width: auto; padding: 10px 15px;">Enviar</button>
+                </form>
+            </div>`;
+        postContainer.innerHTML = postHTML;
+        addEventListeners();
+    }
+    
+    function addEventListeners() {
+        const commentForm = document.getElementById('comment-form');
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const commentInput = document.getElementById('comment-input');
+            const texto_comentario = commentInput.value.trim();
+            if (!texto_comentario) return;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/comentarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        usuario_id: currentUser.id,
+                        publicacion_id: postId,
+                        texto_comentario
+                    })
+                });
+                const newComment = await response.json(); 
+                
+                const commentAuthor = newComment.User || { username: 'Anónimo', foto_perfil_url: null };
+
+                const commentsList = document.getElementById('comments-list');
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment';
+                
+                const serverUrl = 'http://localhost:3000';
+                const newCommentAvatar = commentAuthor.foto_perfil_url 
+                    ? `${serverUrl}${commentAuthor.foto_perfil_url}` 
+                    : `https://i.pravatar.cc/32?u=${commentAuthor.username}`;
+
+                commentElement.innerHTML = `
+                    <img src="${newCommentAvatar}" alt="avatar" class="comment-avatar">
+                    <div class="comment-body">
+                        <a href="perfil.html?id=${commentAuthor.id}" class="comment-author-link">@${commentAuthor.username}</a>
+                        <p class="comment-text">${newComment.texto_comentario}</p>
+                    </div>`;
+                commentsList.appendChild(commentElement);
+                commentInput.value = '';
+            } catch (error) {
+                alert('Error al enviar el comentario.');
+            }
+        });
+        
+        const optionsContainer = document.getElementById('options-container');
+        if (optionsContainer) {
+            optionsContainer.addEventListener('click', async (e) => {
+                if (e.target.matches('.option-btn')) {
+                    const optionId = e.target.dataset.optionId;
+                    try {
+                        await fetch('http://localhost:3000/api/votos', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ usuario_id: currentUser.id, opcion_id: optionId })
+                        });
+                        fetchPost();
+                    } catch (error) {
+                        alert('Error al votar.');
+                    }
+                }
+            });
+        }
+    }
+
+    fetchPost();
+});

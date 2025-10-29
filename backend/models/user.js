@@ -12,11 +12,15 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         validate: { isEmail: true }
     },
-    // CAMBIO CLAVE: La propiedad del modelo ahora se llama igual que la columna de la BD.
     password_hash: {
         type: DataTypes.STRING,
         allowNull: false
-        // Ya no necesitamos 'field' porque el nombre coincide.
+    },
+    foto_perfil_url: {
+        type: DataTypes.STRING(512),
+    },
+     foto_portada_url: {
+        type: DataTypes.STRING(512),
     }
   }, {
     tableName: 'usuarios',

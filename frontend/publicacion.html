@@ -20,9 +20,25 @@
             </a>
             <div class="top-bar-icons">
                 <i class="fa-solid fa-search"></i>
-                <a href="perfil.html">
-                   <img id="user-avatar-top" src="https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg" alt="User Avatar" class="profile-avatar-icon">
-                </a>
+
+                <!-- Contenedor del menú -->
+                <div class="user-menu-container">
+                    <!-- El ícono de perfil que abre el menú -->
+                    <img id="user-avatar-top" src="https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg" alt="User Avatar" class="profile-avatar-icon">
+
+                    <!-- El menú desplegable (oculto por CSS) -->
+                    <div id="user-dropdown-menu" class="dropdown-menu">
+                        <a href="perfil.html" class="dropdown-item">
+                            <i class="fa-solid fa-user"></i>
+                            <span>Ver Perfil</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <div id="logout-btn" class="dropdown-item">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Cerrar Sesión</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -31,11 +47,9 @@
         <main id="post-detail-container" class="feed-column">
             <!-- La publicación detallada se cargará aquí -->
         </main>
-        <aside class="sidebar-column">
-            <a href="home.html" class="btn-create-post" style="text-decoration: none; text-align: center;">Volver al Inicio</a>
-        </aside>
     </div>
 
+    <script src="nav.js"></script>
     <script src="publicacion.js"></script>
 </body>
 </html>

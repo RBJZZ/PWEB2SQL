@@ -42,3 +42,7 @@ yarn.lock
 # Ignorar archivo de contexto y script generador
 context_for_gemini.txt
 generar_contexto.py
+
+# Ignorar carpetas de uploads (archivos subidos)
+uploads/
+**/uploads/

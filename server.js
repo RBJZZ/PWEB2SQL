@@ -3,17 +3,16 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const path = require('path');
-const { Sequelize } = require('sequelize');
+const { Sequelize, Op } = require('sequelize'); 
+const multer = require('multer');
 
-// 1. Se importa el objeto 'db' centralizado desde la carpeta de modelos.
-// Este objeto ya contiene todos los modelos y sus relaciones definidas.
 const db = require('./backend/models');
 
-// 2. Se accede a los modelos a través del objeto 'db' para mayor claridad.
 const User = db.User;
 const Publicacion = db.Publicacion;
 const Opcion = db.Opcion;
 const Voto = db.Voto;
+const Comentario = db.Comentario;
 
 const app = express();
 const port = 3000;
@@ -21,7 +20,29 @@ const port = 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use('/uploads', express.static(path.join(__dirname, 'backend/uploads')));
 app.use(express.static(path.join(__dirname, 'frontend')));
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'backend/uploads/'));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + path.extname(file.originalname);
+        cb(null, 'user-' + req.params.id + '-' + uniqueSuffix);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('¡Solo se permiten archivos de imagen!'), false);
+        }
+    }
+});
 
 // --- Ruta para el Registro de Usuarios ---
 app.post('/api/register', async (req, res) => {
@@ -79,10 +100,10 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/users/:id', async (req, res) => {
     try {
         const user = await User.findByPk(req.params.id, {
-            attributes: ['id', 'username', 'email', 'fan_coins', 'foto_perfil_url', 'fecha_registro'],
+            attributes: ['id', 'username', 'email', 'fan_coins', 'foto_perfil_url', 'foto_portada_url', 'fecha_registro'],
             include: [{
                 model: Publicacion,
-                include: [Opcion] // Incluir opciones en las publicaciones del usuario
+                include: [Opcion]
             }],
             order: [[Publicacion, 'id', 'DESC']]
         });
@@ -95,12 +116,56 @@ app.get('/api/users/:id', async (req, res) => {
     }
 });
 
-// --- Ruta para obtener todas las publicaciones ---
+app.put('/api/users/:id', 
+    upload.fields([
+        { name: 'avatar', maxCount: 1 },
+        { name: 'cover', maxCount: 1 }
+    ]), 
+    async (req, res) => {
+    try {
+        const user = await User.findByPk(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado.' });
+        }
+
+        const { username } = req.body;
+        if (username) user.username = username;
+
+        if (req.files && req.files.avatar) {
+            const avatarFile = req.files.avatar[0];
+            const avatarUrl = `/uploads/${avatarFile.filename}`;
+            user.foto_perfil_url = avatarUrl;
+        }
+
+        if (req.files && req.files.cover) {
+            const coverFile = req.files.cover[0];
+            const coverUrl = `/uploads/${coverFile.filename}`;
+            user.foto_portada_url = coverUrl;
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            message: 'Perfil actualizado exitosamente.',
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                foto_perfil_url: user.foto_perfil_url,
+                foto_portada_url: user.foto_portada_url 
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error en el servidor al actualizar el perfil.', error: error.message });
+    }
+});
+
+
 app.get('/api/publicaciones', async (req, res) => {
     try {
         const publicaciones = await Publicacion.findAll({
             include: [
-                { model: User, attributes: ['nombre_usuario'] }, 
+                { model: User, attributes: ['id', 'username', 'foto_perfil_url'] }, 
                 { model: Opcion } 
             ],
             order: [['id', 'DESC']] 
@@ -146,32 +211,54 @@ app.post('/api/publicaciones', async (req, res) => {
 
 app.get('/api/publicaciones/:id', async (req, res) => {
     try {
+        const viewerId = req.query.userId;
         const publicacion = await Publicacion.findByPk(req.params.id, {
             include: [
-                { model: User, attributes: ['username'] },
-                {
-                    model: Opcion,
-                    attributes: {
-                        include: [[Sequelize.fn("COUNT", Sequelize.col("Votos.id")), "votosCount"]]
-                    },
-                    include: [{
-                        model: Voto, attributes: []
-                    }]
-                },
+                { model: User, attributes: ['id', 'username', 'foto_perfil_url'] },
+                { model: Opcion }, 
                 {
                     model: Comentario,
-                    include: [{ model: User, attributes: ['username'] }]
+                    include: [{ model: User, attributes: ['id', 'username', 'foto_perfil_url'] }],
+                    order: [['fecha_creacion', 'ASC']]
                 }
             ],
-            group: ['Publicacion.id', 'User.id', 'Opcions.id', 'Comentarios.id', 'Comentarios->User.id'],
-            order: [[Comentario, 'fecha_creacion', 'ASC']]
         });
+
         if (!publicacion) {
             return res.status(404).json({ message: 'Publicación no encontrada' });
         }
-        res.json(publicacion);
+
+        const publicacionJSON = publicacion.toJSON();
+
+        let currentUserHasVoted = false;
+        if (viewerId) {
+            const optionIds = publicacionJSON.Opcions.map(op => op.id);
+            
+            const vote = await Voto.findOne({
+                where: {
+                    usuario_id: viewerId,
+                    opcion_id: {
+                        [Op.in]: optionIds 
+                    }
+                }
+            });
+            if (vote) {
+                currentUserHasVoted = true;
+            }
+        }
+
+        publicacionJSON.currentUserHasVoted = currentUserHasVoted;
+
+        for (let i = 0; i < publicacionJSON.Opcions.length; i++) {
+            const opcion = publicacionJSON.Opcions[i];
+            const voteCount = await Voto.count({ where: { opcion_id: opcion.id } });
+            opcion.votosCount = voteCount;
+        }
+
+        res.json(publicacionJSON);
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener la publicación', error: error.message });
+        console.error("ERROR AL OBTENER PUBLICACIÓN INDIVIDUAL:", error); 
+        res.status(500).json({ message: 'Error en el servidor al obtener la publicación', error: error.message });
     }
 });
 
@@ -196,10 +283,14 @@ app.post('/api/comentarios', async (req, res) => {
     }
     try {
         const nuevoComentario = await Comentario.create({ usuario_id, publicacion_id, texto_comentario });
-        // Devolvemos el comentario con los datos del usuario para mostrarlo en el front
+        
         const comentarioCompleto = await Comentario.findByPk(nuevoComentario.id, {
-            include: [{ model: User, attributes: ['username'] }]
+            include: [{ 
+                model: User, 
+                attributes: ['id', 'username', 'foto_perfil_url']
+            }]
         });
+
         res.status(201).json(comentarioCompleto);
     } catch (error) {
         res.status(500).json({ message: 'Error al guardar el comentario.', error: error.message });
