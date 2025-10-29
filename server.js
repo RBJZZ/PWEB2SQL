@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const { Sequelize, Op } = require('sequelize'); 
 const multer = require('multer');
+const session = require('express-session');
 
 const db = require('./backend/models');
 
@@ -16,6 +17,13 @@ const Comentario = db.Comentario;
 
 const app = express();
 const port = 3000;
+
+app.use(session({
+    secret: 'tu-secreto-muy-seguro-aqui',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+}));
 
 
 app.use(cors());
@@ -77,13 +85,16 @@ app.post('/api/login', async (req, res) => {
         }
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (isMatch) {
+            req.session.user = {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                foto_perfil_url: user.foto_perfil_url,
+                rol: user.rol // Guardamos el rol
+            };
             res.status(200).json({
                 message: `¡Bienvenido de nuevo, ${user.username}!`,
-                user: {
-                    id: user.id,
-                    username: user.username,
-                    email: user.email
-                }
+                user: req.session.user 
             });
         } else {
             res.status(401).json({ message: 'Email o contraseña incorrectos.' });
@@ -160,6 +171,7 @@ app.put('/api/users/:id',
 app.get('/api/publicaciones', async (req, res) => {
     try {
         const publicaciones = await Publicacion.findAll({
+            where: { estado: 'aprobado' }, 
             include: [
                 { model: User, attributes: ['id', 'username', 'foto_perfil_url'] }, 
                 { model: Opcion } 
@@ -218,6 +230,11 @@ app.get('/api/publicaciones/:id', async (req, res) => {
     try {
         const viewerId = req.query.userId;
         const publicacion = await Publicacion.findByPk(req.params.id, {
+            where: {
+                [Op.or]: [
+                    { estado: 'aprobado' },
+                ]
+            },
             include: [
                 { model: User, attributes: ['id', 'username', 'foto_perfil_url'] },
                 { model: Opcion }, 
@@ -229,8 +246,8 @@ app.get('/api/publicaciones/:id', async (req, res) => {
             ],
         });
 
-        if (!publicacion) {
-            return res.status(404).json({ message: 'Publicación no encontrada' });
+        if (!publicacion || publicacion.estado !== 'aprobado') {
+            return res.status(404).json({ message: 'Publicación no encontrada o pendiente de aprobación.' });
         }
 
         const publicacionJSON = publicacion.toJSON();
@@ -296,6 +313,54 @@ app.post('/api/comentarios', async (req, res) => {
         res.status(201).json(comentarioCompleto);
     } catch (error) {
         res.status(500).json({ message: 'Error al guardar el comentario.', error: error.message });
+    }
+});
+
+// Middleware de autorización para verificar si el usuario es admin
+function isAdmin(req, res, next) {
+    if (req.session.user && req.session.user.rol === 'admin') {
+        return next(); 
+    }
+    res.status(403).json({ message: 'Acceso denegado. Se requiere rol de administrador.' });
+}
+
+// Ruta para obtener todas las publicaciones pendientes de revisión
+app.get('/api/admin/publicaciones/pendientes', isAdmin, async (req, res) => {
+    try {
+        const publicacionesPendientes = await Publicacion.findAll({
+            where: { estado: 'pendiente' },
+            include: [
+                { model: User, attributes: ['username'] },
+                { model: Opcion }
+            ],
+            order: [['id', 'ASC']]
+        });
+        res.json(publicacionesPendientes);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener publicaciones pendientes.' });
+    }
+});
+
+// Ruta para aprobar o rechazar una publicación
+app.put('/api/admin/publicaciones/:id/estado', isAdmin, async (req, res) => {
+    const { nuevoEstado } = req.body; 
+
+    if (!['aprobado', 'rechazado'].includes(nuevoEstado)) {
+        return res.status(400).json({ message: 'El nuevo estado no es válido.' });
+    }
+
+    try {
+        const publicacion = await Publicacion.findByPk(req.params.id);
+        if (!publicacion) {
+            return res.status(404).json({ message: 'Publicación no encontrada.' });
+        }
+        
+        publicacion.estado = nuevoEstado;
+        await publicacion.save();
+
+        res.status(200).json({ message: `El estado de la publicación ${publicacion.id} fue actualizado a '${nuevoEstado}'.` });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el estado de la publicación.' });
     }
 });
 

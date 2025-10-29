@@ -12,6 +12,11 @@ module.exports = (sequelize, DataTypes) => {
     texto_pregunta: {
       type: DataTypes.TEXT,
       allowNull: false
+    },
+    estado: {
+        type: DataTypes.ENUM('pendiente', 'aprobado', 'rechazado'),
+        defaultValue: 'pendiente',
+        allowNull: false
     }
   }, {
     tableName: 'publicaciones',

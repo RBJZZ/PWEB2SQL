@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administración - Cup26</title>
+    <link rel="stylesheet" href="home.css"> 
+    <style>
+        .admin-panel { max-width: 900px; margin: 20px auto; }
+        .post-review-card { 
+            background-color: #fff; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .review-actions { margin-top: 20px; display: flex; gap: 10px; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn-approve { background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-reject { background-color: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        .post-question { font-size: 1.1rem; font-weight: 600; margin-bottom: 15px; }
+        .post-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .option-btn {
+            padding: 12px;
+            background-color: #f0f2f5;
+            border: 1px solid #ccd0d5;
+            border-radius: 20px;
+            color: #050505;
+            text-align: center;
+            font-weight: 600;
+        }
+        .post-options-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .image-option-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .image-option-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        .image-option-card .option-text-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            color: white;
+            padding: 15px 10px 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="countdown-banner">
+            <span>🏆 WORLD CUP 2026 IN 232:12:12:12 🏆</span>
+        </div>
+        <div class="top-bar">
+            <a href="home.html" style="text-decoration: none; color: inherit;">
+                <h2 class="logo">Cup26</h2>
+            </a>
+            <div class="top-bar-icons">
+                <i class="fa-solid fa-search"></i>
+
+                <div class="user-menu-container">
+                    <img id="user-avatar-top" src="https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg" alt="User Avatar" class="profile-avatar-icon">
+
+                    <div id="user-dropdown-menu" class="dropdown-menu">
+                        <a href="perfil.html" class="dropdown-item">
+                            <i class="fa-solid fa-user"></i>
+                            <span>Ver Perfil</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <div id="logout-btn" class="dropdown-item">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Cerrar Sesión</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="admin-panel">
+        <h1>Panel de Moderación</h1>
+        <p>Aquí puedes aprobar o rechazar las publicaciones pendientes creadas por los usuarios.</p>
+        <div id="pending-posts-container">
+            <!-- Las publicaciones pendientes se cargarán aquí -->
+        </div>
+    </main>
+    <script src="nav.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

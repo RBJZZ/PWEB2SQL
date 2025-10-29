@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
             userData = await response.json();
             renderProfile(userData);
             
-            // Solo añadimos los listeners para el modal SI estamos viendo nuestro propio perfil
             if (currentUser.id == targetUserId) {
                 addEventListenersForModal();
             }

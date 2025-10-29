@@ -1,34 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
     const userAvatarIcon = document.getElementById('user-avatar-top');
     const dropdownMenu = document.getElementById('user-dropdown-menu');
 
-    // Si no encontramos los elementos (por ejemplo, en la página de login), no hacemos nada.
-    if (!userAvatarIcon || !dropdownMenu) {
+    if (!dropdownMenu) {
         return;
     }
+    
+    if (currentUser && currentUser.rol === 'admin') {
+        const adminLink = document.createElement('a');
+        adminLink.href = 'admin.html';
+        adminLink.className = 'dropdown-item';
+        adminLink.innerHTML = `<i class="fa-solid fa-user-shield"></i><span>Panel Admin</span>`;
+        
+        const divider = dropdownMenu.querySelector('.dropdown-divider');
+        if (divider) {
+            dropdownMenu.insertBefore(adminLink, divider);
+        }
+    }
 
-    // --- Lógica para mostrar/ocultar el menú ---
-    userAvatarIcon.addEventListener('click', (event) => {
-        // Evita que el click en el ícono cierre el menú inmediatamente (ver abajo)
-        event.stopPropagation(); 
-        dropdownMenu.classList.toggle('show');
-    });
+    if (userAvatarIcon) {
+        userAvatarIcon.addEventListener('click', (event) => {
+            event.stopPropagation(); 
+            dropdownMenu.classList.toggle('show');
+        });
+    }
 
-    // --- Lógica para cerrar el menú si se hace clic fuera de él ---
     window.addEventListener('click', () => {
         if (dropdownMenu.classList.contains('show')) {
             dropdownMenu.classList.remove('show');
         }
     });
 
-    // --- Lógica para el botón de Cerrar Sesión ---
     const logoutButton = document.getElementById('logout-btn');
     if (logoutButton) {
         logoutButton.addEventListener('click', () => {
-            // 1. Borramos los datos del usuario del almacenamiento local
             localStorage.removeItem('currentUser');
-            
-            // 2. Redirigimos al usuario a la página de inicio de sesión
             window.location.href = 'index.html';
         });
     }
