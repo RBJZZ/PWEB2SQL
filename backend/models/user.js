@@ -2,7 +2,7 @@ module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
     username: {
         type: DataTypes.STRING,
-        field: 'nombre_usuario', 
+        field: 'nombre_usuario',
         allowNull: false,
         unique: true
     },
@@ -12,15 +12,17 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         validate: { isEmail: true }
     },
-    password: {
+    // CAMBIO CLAVE: La propiedad del modelo ahora se llama igual que la columna de la BD.
+    password_hash: {
         type: DataTypes.STRING,
-        field: 'password_hash', 
         allowNull: false
+        // Ya no necesitamos 'field' porque el nombre coincide.
     }
   }, {
-    tableName: 'usuarios', 
+    tableName: 'usuarios',
     timestamps: true,
-    underscored: true
+    createdAt: 'fecha_registro',
+    updatedAt: false
   });
 
   return User;

@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const path = require('path');
+const { Sequelize } = require('sequelize');
 
 // 1. Se importa el objeto 'db' centralizado desde la carpeta de modelos.
 // Este objeto ya contiene todos los modelos y sus relaciones definidas.
@@ -25,23 +26,18 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 // --- Ruta para el Registro de Usuarios ---
 app.post('/api/register', async (req, res) => {
     const { username, email, password } = req.body;
-
     if (!username || !email || !password) {
         return res.status(400).json({ message: 'Por favor, completa todos los campos.' });
     }
-
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Usamos los nombres del MODELO: 'username' y 'password'
+        // CAMBIO CLAVE: Usamos 'password_hash' para que coincida con el modelo actualizado.
         const newUser = await User.create({
-            username, // El modelo lo mapeará a 'nombre_usuario'
+            username,
             email,
-            password: hashedPassword // El modelo lo mapeará a 'password_hash'
+            password_hash: hashedPassword
         });
-
         res.status(201).json({ message: `¡Registro exitoso, ${newUser.username}! Ahora puedes iniciar sesión.` });
-
     } catch (error) {
         if (error.name === 'SequelizeUniqueConstraintError') {
             return res.status(409).json({ message: 'El nombre de usuario o el email ya existen.' });
@@ -50,35 +46,50 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// --- Ruta para el Inicio de Sesión ---
+// --- Ruta de Inicio de Sesión ---
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
-
     if (!email || !password) {
         return res.status(400).json({ message: 'Por favor, completa todos los campos.' });
     }
-
     try {
         const user = await User.findOne({ where: { email } });
-
         if (!user) {
             return res.status(401).json({ message: 'Email o contraseña incorrectos.' });
         }
-
+        // CAMBIO CLAVE: Leemos 'user.password_hash' porque así se llama ahora en el objeto.
         const isMatch = await bcrypt.compare(password, user.password_hash);
-
         if (isMatch) {
             res.status(200).json({
-                message: `¡Bienvenido de nuevo, ${user.nombre_usuario}!`,
+                message: `¡Bienvenido de nuevo, ${user.username}!`,
                 user: {
                     id: user.id,
-                    username: user.nombre_usuario, 
+                    username: user.username,
                     email: user.email
                 }
             });
         } else {
             res.status(401).json({ message: 'Email o contraseña incorrectos.' });
         }
+    } catch (error) {
+        res.status(500).json({ message: 'Error en el servidor.', error: error.message });
+    }
+});
+
+app.get('/api/users/:id', async (req, res) => {
+    try {
+        const user = await User.findByPk(req.params.id, {
+            attributes: ['id', 'username', 'email', 'fan_coins', 'foto_perfil_url', 'fecha_registro'],
+            include: [{
+                model: Publicacion,
+                include: [Opcion] // Incluir opciones en las publicaciones del usuario
+            }],
+            order: [[Publicacion, 'id', 'DESC']]
+        });
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado.' });
+        }
+        res.json(user);
     } catch (error) {
         res.status(500).json({ message: 'Error en el servidor.', error: error.message });
     }
@@ -130,6 +141,68 @@ app.post('/api/publicaciones', async (req, res) => {
     } catch (error) {
         await t.rollback();
         res.status(500).json({ message: 'Error al crear la publicación.', error: error.message });
+    }
+});
+
+app.get('/api/publicaciones/:id', async (req, res) => {
+    try {
+        const publicacion = await Publicacion.findByPk(req.params.id, {
+            include: [
+                { model: User, attributes: ['username'] },
+                {
+                    model: Opcion,
+                    attributes: {
+                        include: [[Sequelize.fn("COUNT", Sequelize.col("Votos.id")), "votosCount"]]
+                    },
+                    include: [{
+                        model: Voto, attributes: []
+                    }]
+                },
+                {
+                    model: Comentario,
+                    include: [{ model: User, attributes: ['username'] }]
+                }
+            ],
+            group: ['Publicacion.id', 'User.id', 'Opcions.id', 'Comentarios.id', 'Comentarios->User.id'],
+            order: [[Comentario, 'fecha_creacion', 'ASC']]
+        });
+        if (!publicacion) {
+            return res.status(404).json({ message: 'Publicación no encontrada' });
+        }
+        res.json(publicacion);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener la publicación', error: error.message });
+    }
+});
+
+
+// --- RUTA PARA VOTAR ---
+app.post('/api/votos', async (req, res) => {
+    const { usuario_id, opcion_id } = req.body;
+    try {
+        // Lógica para evitar doble voto (opcional, la BD ya tiene una constraint)
+        const newVoto = await Voto.create({ usuario_id, opcion_id });
+        res.status(201).json(newVoto);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al registrar el voto', error: error.message });
+    }
+});
+
+// --- RUTA PARA COMENTAR ---
+app.post('/api/comentarios', async (req, res) => {
+    const { usuario_id, publicacion_id, texto_comentario } = req.body;
+    if (!usuario_id || !publicacion_id || !texto_comentario) {
+        return res.status(400).json({ message: 'Faltan datos para crear el comentario.' });
+    }
+    try {
+        const nuevoComentario = await Comentario.create({ usuario_id, publicacion_id, texto_comentario });
+        // Devolvemos el comentario con los datos del usuario para mostrarlo en el front
+        const comentarioCompleto = await Comentario.findByPk(nuevoComentario.id, {
+            include: [{ model: User, attributes: ['username'] }]
+        });
+        res.status(201).json(comentarioCompleto);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al guardar el comentario.', error: error.message });
     }
 });
 

@@ -38,3 +38,7 @@ Thumbs.db
 # Otros
 npm-shrinkwrap.json
 yarn.lock
+
+# Ignorar archivo de contexto y script generador
+context_for_gemini.txt
+generar_contexto.py
