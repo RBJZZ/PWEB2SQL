@@ -51,9 +51,17 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    // Guardamos los datos del usuario para usarlos en otras páginas
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+
                     messageEl.textContent = data.message;
                     messageEl.style.color = '#00f2ea';
-                    // Aquí podrías redirigir a una página de bienvenida, por ejemplo.
+                    
+                    // Redirigimos a la página principal después de 1 segundo
+                    setTimeout(() => {
+                        window.location.href = 'home.html';
+                    }, 1000);
+
                 } else {
                     messageEl.textContent = data.message;
                     messageEl.style.color = '#ff00ff';

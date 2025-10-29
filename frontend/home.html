@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - World Cup 2026 Connect</title>
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo-container">
+            <h2>World Cup Connect</h2>
+        </div>
+        <div class="user-info">
+            <span id="username-display"></span>
+            <button id="logout-btn" class="btn-secondary">Salir</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <main class="feed-column">
+            <h1><i class="fa-solid fa-futbol"></i> Últimas Encuestas</h1>
+            <div id="feed-container">
+                </div>
+        </main>
+        <aside class="sidebar-column">
+            <button id="create-post-btn" class="btn-main"><i class="fa-solid fa-plus"></i> Crear Encuesta</button>
+            <div class="trending-polls">
+                <h3><i class="fa-solid fa-fire"></i> Tendencias</h3>
+                <p>Próximamente...</p>
+            </div>
+        </aside>
+    </div>
+
+    <div id="create-post-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="close-modal-btn">&times;</button>
+            <h2>Crear una nueva encuesta</h2>
+            <form id="createPostForm">
+                <div class="input-group">
+                    <textarea id="post-question" rows="3" required></textarea>
+                    <label for="post-question">Escribe tu pregunta...</label>
+                </div>
+                <div id="options-container">
+                    <div class="input-group">
+                        <input type="text" class="option-input" required>
+                        <label>Opción 1</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" class="option-input" required>
+                        <label>Opción 2</label>
+                    </div>
+                </div>
+                <button type="button" id="add-option-btn">Añadir otra opción</button>
+                <button type="submit" class="btn-main">Publicar</button>
+                <p id="modal-message" style="color: #ff00ff; margin-top: 15px;"></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+            // 1. Verificación de Autenticación
+            if (!currentUser) {
+                window.location.href = 'index.html'; // Si no hay usuario, regresa al login
+                return;
+            }
+            document.getElementById('username-display').textContent = `@${currentUser.username}`;
+
+            // 2. Elementos del DOM
+            const feedContainer = document.getElementById('feed-container');
+            const createPostBtn = document.getElementById('create-post-btn');
+            const modal = document.getElementById('create-post-modal');
+            const closeModalBtn = document.querySelector('.close-modal-btn');
+            const createPostForm = document.getElementById('createPostForm');
+            const modalMessage = document.getElementById('modal-message');
+
+            // 3. Función para cargar las publicaciones
+            async function fetchPublicaciones() {
+                try {
+                    const response = await fetch('http://localhost:3000/api/publicaciones');
+                    if (!response.ok) throw new Error('Error al cargar las publicaciones.');
+                    
+                    const publicaciones = await response.json();
+                    feedContainer.innerHTML = ''; // Limpiar el feed antes de cargar
+
+                    publicaciones.forEach(pub => {
+                        const postElement = document.createElement('div');
+                        postElement.className = 'post';
+
+                        let opcionesHTML = pub.Opcions.map(op => 
+                            `<button class="option-btn" data-opcion-id="${op.id}">${op.texto_opcion}</button>`
+                        ).join('');
+
+                        postElement.innerHTML = `
+                            <div class="post-header">
+                                <span class="post-author">@${pub.User.nombre_usuario}</span>
+                            </div>
+                            <p class="post-question">${pub.texto_pregunta}</p>
+                            <div class="post-options">
+                                ${opcionesHTML}
+                            </div>
+                        `;
+                        feedContainer.appendChild(postElement);
+                    });
+
+                } catch (error) {
+                    feedContainer.innerHTML = `<p style="color: #ff00ff;">${error.message}</p>`;
+                }
+            }
+            
+            // 4. Lógica del Modal
+            createPostBtn.addEventListener('click', () => modal.style.display = 'flex');
+            closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // 5. Lógica para crear una publicación
+            createPostForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                modalMessage.textContent = '';
+                
+                const texto_pregunta = document.getElementById('post-question').value;
+                const optionInputs = document.querySelectorAll('.option-input');
+                const opciones = Array.from(optionInputs).map(input => ({
+                    texto: input.value,
+                    es_correcta: false // Simplificado por ahora, se puede mejorar para trivias
+                }));
+
+                if (opciones.some(op => !op.texto)) {
+                    modalMessage.textContent = 'Todas las opciones deben tener texto.';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('http://localhost:3000/api/publicaciones', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            usuario_id: currentUser.id,
+                            texto_pregunta,
+                            opciones
+                        })
+                    });
+                    const data = await response.json();
+
+                    if(response.ok) {
+                        modal.style.display = 'none';
+                        createPostForm.reset();
+                        fetchPublicaciones(); // Recargar el feed
+                    } else {
+                        modalMessage.textContent = data.message;
+                    }
+                } catch (error) {
+                    modalMessage.textContent = 'Error de conexión.';
+                }
+            });
+            
+            // 6. Logout
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            });
+
+            // Carga inicial de publicaciones
+            fetchPublicaciones();
+        });
+    </script>
+</body>
+</html>

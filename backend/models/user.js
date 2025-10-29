@@ -1,29 +1,27 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../database');
-
-const User = sequelize.define('User', {
-    // El modelo define los atributos/columnas de la tabla
+module.exports = (sequelize, DataTypes) => {
+  const User = sequelize.define('User', {
     username: {
         type: DataTypes.STRING,
+        field: 'nombre_usuario', 
         allowNull: false,
-        unique: true // El nombre de usuario debe ser único
+        unique: true
     },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true, // El email debe ser único
-        validate: {
-            isEmail: true // Valida que el formato sea de email
-        }
+        unique: true,
+        validate: { isEmail: true }
     },
     password: {
         type: DataTypes.STRING,
+        field: 'password_hash', 
         allowNull: false
     }
-}, {
-    // Otras opciones del modelo
-    tableName: 'users',
-    timestamps: true // Agrega createdAt y updatedAt automáticamente
-});
+  }, {
+    tableName: 'usuarios', 
+    timestamps: true,
+    underscored: true
+  });
 
-module.exports = User;
+  return User;
+};
