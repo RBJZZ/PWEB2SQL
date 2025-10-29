@@ -226,6 +226,79 @@ app.post('/api/publicaciones', upload.array('option_images', 4), async (req, res
     }
 });
 
+app.get('/api/publicaciones/buscar', async (req, res) => {
+    const { q } = req.query;
+
+    if (!q || q.trim().length < 2) {
+        return res.json([]);
+    }
+
+    try {
+        const resultados = await Publicacion.findAll({
+            where: {
+                texto_pregunta: {
+                    [Op.like]: `%${q}%`
+                },
+                estado: 'aprobado'
+            },
+            include: [{ model: User, attributes: ['username'] }],
+            limit: 5 
+        });
+        res.json(resultados);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al realizar la búsqueda.' });
+    }
+});
+
+app.get('/api/publicaciones/trending', async (req, res) => {
+    try {
+        const [topPosts] = await db.sequelize.query(`
+            SELECT 
+                P.id,
+                COUNT(V.id) as votesCount
+            FROM publicaciones AS P
+            JOIN opciones AS O ON P.id = O.publicacion_id
+            JOIN votos AS V ON O.id = V.opcion_id
+            WHERE 
+                P.estado = 'aprobado' AND 
+                V.created_at >= NOW() - INTERVAL 3 DAY
+            GROUP BY P.id
+            ORDER BY votesCount DESC
+            LIMIT 5;
+        `);
+
+        if (topPosts.length === 0) {
+            return res.json([]);
+        }
+
+        const topPostIds = topPosts.map(p => p.id);
+
+        const trendingPosts = await Publicacion.findAll({
+            where: {
+                id: {
+                    [Op.in]: topPostIds
+                }
+            },
+            include: [{ model: User, attributes: ['username'] }]
+        });
+
+        const response = trendingPosts.map(post => {
+            const postJSON = post.toJSON();
+            const voteInfo = topPosts.find(p => p.id === post.id);
+            postJSON.votesCount = voteInfo ? voteInfo.votesCount : 0;
+            return postJSON;
+        });
+        
+        response.sort((a, b) => b.votesCount - a.votesCount);
+
+        res.json(response);
+
+    } catch (error) {
+        console.error("Error al obtener trending posts:", error);
+        res.status(500).json({ message: 'Error al obtener las tendencias.' });
+    }
+});
+
 app.get('/api/publicaciones/:id', async (req, res) => {
     try {
         const viewerId = req.query.userId;
@@ -363,6 +436,8 @@ app.put('/api/admin/publicaciones/:id/estado', isAdmin, async (req, res) => {
         res.status(500).json({ message: 'Error al actualizar el estado de la publicación.' });
     }
 });
+
+
 
 db.sequelize.sync()
     .then(() => {

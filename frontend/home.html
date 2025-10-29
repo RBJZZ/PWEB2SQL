@@ -19,7 +19,11 @@
                 <h2 class="logo">Cup26</h2>
             </a>
             <div class="top-bar-icons">
-                <i class="fa-solid fa-search"></i>
+                <div class="search-container">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="search" id="search-input" placeholder="Buscar encuestas...">
+                    <div id="search-results" class="search-results-container"></div>
+                </div>
 
                 <div class="user-menu-container">
                     <img id="user-avatar-top" src="https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg" alt="User Avatar" class="profile-avatar-icon">
@@ -47,13 +51,8 @@
         <aside class="sidebar-column">
             <div class="sidebar-widget">
                 <h3>Trending Polls</h3>
-                <div class="trending-users">
-                    <img src="https://i.pravatar.cc/40?img=1" alt="User" class="trending-avatar">
-                    <img src="https://i.pravatar.cc/40?img=2" alt="User" class="trending-avatar">
-                    <img src="https://i.pravatar.cc/40?img=3" alt="User" class="trending-avatar">
-                    <img src="https://i.pravatar.cc/40?img=4" alt="User" class="trending-avatar">
-                    <img src="https://i.pravatar.cc/40?img=5" alt="User" class="trending-avatar">
-                    <img src="https://i.pravatar.cc/40?img=6" alt="User" class="trending-avatar">
+                <div id="trending-polls-container" class="trending-list">
+                    <!-- Contenido dinámico -->
                 </div>
             </div>
             <button id="create-post-btn" class="btn-create-post">

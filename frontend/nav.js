@@ -42,3 +42,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+const searchInput = document.getElementById('search-input');
+    const searchResultsContainer = document.getElementById('search-results');
+    let searchTimeout;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const query = searchInput.value;
+                if (query.length > 1) {
+                    performSearch(query);
+                } else {
+                    searchResultsContainer.style.display = 'none';
+                }
+            }, 300);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target)) {
+                searchResultsContainer.style.display = 'none';
+            }
+        });
+    }
+
+    async function performSearch(query) {
+        try {
+            const response = await fetch(`/api/publicaciones/buscar?q=${encodeURIComponent(query)}`);
+            const results = await response.json();
+            renderSearchResults(results);
+        } catch (error) {
+            console.error('Error en la búsqueda:', error);
+        }
+    }
+
+    function renderSearchResults(results) {
+        if (results.length === 0) {
+            searchResultsContainer.innerHTML = `<div class="search-result-item">No se encontraron resultados.</div>`;
+        } else {
+            searchResultsContainer.innerHTML = results.map(post => `
+                <a href="publicacion.html?id=${post.id}" class="search-result-item">
+                    <div>${post.texto_pregunta}</div>
+                    <div class="author">por @${post.User.username}</div>
+                </a>
+            `).join('');
+        }
+        searchResultsContainer.style.display = 'block';
+    }

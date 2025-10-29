@@ -19,14 +19,16 @@
                 <h2 class="logo">Cup26</h2>
             </a>
             <div class="top-bar-icons">
-                <i class="fa-solid fa-search"></i>
+                <div class="search-container">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="search" id="search-input" placeholder="Buscar encuestas...">
+                    <div id="search-results" class="search-results-container"></div>
+                </div>
 
                 <!-- Contenedor del menú -->
                 <div class="user-menu-container">
-                    <!-- El ícono de perfil que abre el menú -->
                     <img id="user-avatar-top" src="https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg" alt="User Avatar" class="profile-avatar-icon">
 
-                    <!-- El menú desplegable (oculto por CSS) -->
                     <div id="user-dropdown-menu" class="dropdown-menu">
                         <a href="perfil.html" class="dropdown-item">
                             <i class="fa-solid fa-user"></i>

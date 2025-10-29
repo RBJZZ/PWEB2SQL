@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser) {
         window.location.href = 'index.html';
@@ -15,8 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const optionsContainer = document.getElementById('options-container');
     const addOptionBtn = document.getElementById('add-option-btn');
     const pollTypeSelect = document.getElementById('poll-type');
+    const trendingContainer = document.getElementById('trending-polls-container');
 
-    // --- Lógica de Renderizado del Feed ---
+
     async function fetchPublicaciones() {
         try {
             const response = await fetch('http://localhost:3000/api/publicaciones');
@@ -28,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 feedContainer.innerHTML = `<p class="empty-feed">Aún no hay publicaciones. ¡Sé el primero!</p>`;
                 return;
             }
-
             data.forEach(pub => {
                 const postElement = document.createElement('div');
                 postElement.className = 'post';
@@ -40,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? `${serverUrl}${pub.User.foto_perfil_url}`
                     : `https://i.pravatar.cc/40?u=${authorUsername}`;
 
-                // --- LÓGICA DE OPCIONES (IMAGEN VS TEXTO) ---
                 let optionsHTML = '';
                 const hasImages = pub.Opcions.some(op => op.imagen_url);
 
@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         `<button class="option-btn" disabled>${op.texto_opcion}</button>`
                     ).join('') + `</div>`;
                 }
-                // --- FIN DE LA LÓGICA DE OPCIONES ---
 
                 postElement.innerHTML = `
                     <a href="perfil.html?id=${authorId}" class="post-link-header">
@@ -81,7 +80,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Lógica del Modal de Creación ---
+    async function fetchTrendingPolls() {
+        if (!trendingContainer) return;
+        try {
+
+            const response = await fetch('http://localhost:3000/api/publicaciones/trending');
+            
+            if (!response.ok) {
+                throw new Error(`Error del servidor: ${response.statusText}`);
+            }
+
+            const posts = await response.json();
+            renderTrendingPolls(posts);
+        } catch (error) {
+            console.error('Error al cargar tendencias:', error);
+            trendingContainer.innerHTML = '<p style="font-size: 0.9rem; color: #606770;">No se pudieron cargar las tendencias.</p>';
+        }
+    }
+
+    function renderTrendingPolls(posts) {
+        if (!Array.isArray(posts) || posts.length === 0) {
+            trendingContainer.innerHTML = '<p style="font-size: 0.9rem; color: #606770;">Aún no hay tendencias.</p>';
+            return;
+        }
+        
+        trendingContainer.innerHTML = posts.map(post => `
+            <a href="publicacion.html?id=${post.id}" class="trending-item">
+                ${post.texto_pregunta}
+                <span class="trending-item-votes">${post.votesCount} votos</span>
+            </a>
+        `).join('');
+    }
     
     function createOptionInput(optionNumber, pollType) {
         const div = document.createElement('div');
@@ -195,4 +224,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Carga Inicial ---
     fetchPublicaciones();
+    fetchTrendingPolls();
 });
