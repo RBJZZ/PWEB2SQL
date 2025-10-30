@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) throw new Error('Falló la actualización del estado.');
             
-            // Si la operación fue exitosa, eliminamos la tarjeta de la vista.
             document.getElementById(`post-card-${postId}`).remove();
 
         } catch (error) {

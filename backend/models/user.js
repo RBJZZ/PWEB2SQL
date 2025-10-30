@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     foto_perfil_url: {
         type: DataTypes.STRING(512),
     },
-     foto_portada_url: {
+    foto_portada_url: {
         type: DataTypes.STRING(512),
     }
   }, {

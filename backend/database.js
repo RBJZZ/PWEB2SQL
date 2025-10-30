@@ -1,12 +1,10 @@
 const { Sequelize } = require('sequelize');
 
-// Configura la conexión a tu base de datos MySQL
 const sequelize = new Sequelize('cup26_database', 'root', 'CrimsonNight16', {
     host: 'localhost',
     dialect: 'mysql'
 });
 
-// Probar la conexión (opcional pero recomendado)
 async function testConnection() {
     try {
         await sequelize.authenticate();

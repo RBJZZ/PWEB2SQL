@@ -40,7 +40,7 @@ npm-shrinkwrap.json
 yarn.lock
 
 # Ignorar archivo de contexto y script generador
-context_for_gemini.txt
+context.txt
 generar_contexto.py
 
 # Ignorar carpetas de uploads (archivos subidos)

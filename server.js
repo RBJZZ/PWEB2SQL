@@ -90,7 +90,7 @@ app.post('/api/login', async (req, res) => {
                 username: user.username,
                 email: user.email,
                 foto_perfil_url: user.foto_perfil_url,
-                rol: user.rol // Guardamos el rol
+                rol: user.rol 
             };
             res.status(200).json({
                 message: `¡Bienvenido de nuevo, ${user.username}!`,
@@ -389,7 +389,6 @@ app.post('/api/comentarios', async (req, res) => {
     }
 });
 
-// Middleware de autorización para verificar si el usuario es admin
 function isAdmin(req, res, next) {
     if (req.session.user && req.session.user.rol === 'admin') {
         return next(); 
@@ -397,7 +396,6 @@ function isAdmin(req, res, next) {
     res.status(403).json({ message: 'Acceso denegado. Se requiere rol de administrador.' });
 }
 
-// Ruta para obtener todas las publicaciones pendientes de revisión
 app.get('/api/admin/publicaciones/pendientes', isAdmin, async (req, res) => {
     try {
         const publicacionesPendientes = await Publicacion.findAll({
@@ -414,7 +412,6 @@ app.get('/api/admin/publicaciones/pendientes', isAdmin, async (req, res) => {
     }
 });
 
-// Ruta para aprobar o rechazar una publicación
 app.put('/api/admin/publicaciones/:id/estado', isAdmin, async (req, res) => {
     const { nuevoEstado } = req.body; 
 
