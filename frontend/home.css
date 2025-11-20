@@ -732,3 +732,131 @@ header {
     animation-play-state: paused;
     cursor: help;
 }
+
+/* --- ESTILOS PARA EL MODAL DE CREAR POST (MEJORADO) --- */
+
+/* Tarjeta de Opción de Imagen */
+.image-poll-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e4e6eb;
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.2s ease;
+}
+
+.image-poll-card:hover {
+    border-color: #bca1f7;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Wrapper del Radio Button */
+.radio-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 10px;
+    border-right: 1px solid #e4e6eb;
+}
+.radio-wrapper input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #4a00e0;
+    cursor: pointer;
+}
+
+/* Caja de Previsualización (Izquierda) */
+.poll-image-preview-box {
+    width: 80px;
+    height: 80px;
+    background-color: #e4e6eb;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #ccc;
+}
+
+.option-image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none; /* Oculto por defecto hasta que suban algo */
+}
+
+.placeholder-icon {
+    font-size: 1.5rem;
+    color: #999;
+}
+
+/* Columna de Inputs (Derecha) */
+.poll-image-inputs {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Input de Texto (Reutilizando estilo modal) */
+.poll-image-inputs .modal-input {
+    padding: 10px;
+    font-size: 0.95rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+/* Botón de Subida Personalizado */
+.file-upload-container {
+    position: relative;
+}
+
+.option-image-input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.btn-upload-small {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #fff;
+    border: 1px solid #4a00e0;
+    color: #4a00e0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: fit-content;
+}
+
+.btn-upload-small:hover {
+    background-color: #4a00e0;
+    color: #fff;
+}
+
+/* Separador punteado para el botón "Añadir" */
+.btn-add-option {
+    border: 2px dashed #ccd0d5;
+    background: transparent;
+    color: #666;
+    padding: 12px;
+    margin-top: 10px;
+    transition: all 0.2s;
+}
+.btn-add-option:hover {
+    border-color: #4a00e0;
+    color: #4a00e0;
+    background: rgba(74, 0, 224, 0.05);
+}

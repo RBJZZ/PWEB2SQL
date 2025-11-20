@@ -120,19 +120,42 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function createOptionInput(optionNumber, pollType) {
         const div = document.createElement('div');
-        div.className = 'modal-option-group';
+
+        const radioHTML = `
+            <div class="radio-wrapper" title="Marcar como respuesta correcta">
+                <input type="radio" name="correctOption" value="${optionNumber - 1}" ${optionNumber === 1 ? 'checked' : ''}>
+            </div>
+        `;
 
         if (pollType === 'image') {
-            div.classList.add('image-poll');
+            div.className = 'image-poll-card'; 
             div.innerHTML = `
-                <div class="image-preview-container">
-                    <img class="option-image-preview" id="preview-${optionNumber}" src="#" alt="Vista previa">
+                ${radioHTML}
+                
+                <div class="poll-image-preview-box">
+                    <img class="option-image-preview" id="preview-${optionNumber}" src="" alt="">
+                    <div class="placeholder-icon" id="placeholder-${optionNumber}">
+                        <i class="fa-regular fa-image"></i>
+                    </div>
                 </div>
-                <input type="text" class="option-input" placeholder="Descripción de la opción ${optionNumber}" required>
-                <input type="file" class="option-image-input" accept="image/*" data-preview-id="preview-${optionNumber}">
+
+                <div class="poll-image-inputs">
+                    <input type="text" class="modal-input" placeholder="Descripción Opción ${optionNumber}" required>
+                    
+                    <div class="file-upload-container">
+                        <label for="file-input-${optionNumber}" class="btn-upload-small">
+                            <i class="fa-solid fa-camera"></i> Subir Imagen
+                        </label>
+                        <input type="file" id="file-input-${optionNumber}" class="option-image-input" accept="image/*" data-preview-id="preview-${optionNumber}" data-placeholder-id="placeholder-${optionNumber}">
+                    </div>
+                </div>
             `;
-        } else { // 'text'
-            div.innerHTML = `<input type="text" class="option-input" placeholder="Opción ${optionNumber}" required>`;
+        } else { 
+            div.className = 'modal-option-group';
+            div.innerHTML = `
+                ${radioHTML}
+                <input type="text" class="option-input" placeholder="Opción ${optionNumber}" required style="flex-grow:1;">
+            `;
         }
         return div;
     }
@@ -147,13 +170,22 @@ document.addEventListener('DOMContentLoaded', () => {
     optionsContainer.addEventListener('change', (e) => {
         if (e.target.classList.contains('option-image-input')) {
             const previewId = e.target.dataset.previewId;
+            const placeholderId = e.target.dataset.placeholderId; // Nuevo ID
+            
             const previewImg = document.getElementById(previewId);
+            const placeholderDiv = document.getElementById(placeholderId);
+            
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     previewImg.src = event.target.result;
-                    previewImg.style.display = 'block';
+                    previewImg.style.display = 'block'; 
+                    if(placeholderDiv) placeholderDiv.style.display = 'none'; 
+                    
+
+                    const label = e.target.previousElementSibling;
+                    if(label) { label.innerHTML = '<i class="fa-solid fa-check"></i> Lista'; label.style.borderColor = '#00b09b'; color = '#00b09b'; }
                 }
                 reader.readAsDataURL(file);
             }
