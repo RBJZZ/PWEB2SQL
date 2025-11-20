@@ -434,6 +434,99 @@ app.put('/api/admin/publicaciones/:id/estado', isAdmin, async (req, res) => {
     }
 });
 
+// ENDPOINTS DE GAMIFICACIÓN
+
+app.get('/api/shop', async (req, res) => {
+    try {
+        const premios = await db.Premio.findAll();
+        res.json(premios);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al cargar la tienda.' });
+    }
+});
+
+app.post('/api/shop/buy', async (req, res) => {
+    const { usuario_id, premio_id } = req.body;
+    const t = await db.sequelize.transaction();
+
+    try {
+        const user = await User.findByPk(usuario_id, { transaction: t });
+        const premio = await db.Premio.findByPk(premio_id, { transaction: t });
+
+        if (!user || !premio) {
+            await t.rollback();
+            return res.status(404).json({ message: 'Item no encontrado.' });
+        }
+
+        const yaTiene = await db.Inventario.findOne({
+            where: { usuario_id, premio_id },
+            transaction: t
+        });
+
+        if (yaTiene) {
+            await t.rollback();
+            return res.status(400).json({ message: '¡Ya tienes este artículo!' });
+        }
+
+        if (user.fan_coins < premio.costo_en_fancoins) {
+            await t.rollback();
+            return res.status(400).json({ message: 'No tienes suficientes FanCoins.' });
+        }
+
+        user.fan_coins -= premio.costo_en_fancoins;
+        await user.save({ transaction: t });
+        
+        await db.Inventario.create({ usuario_id, premio_id }, { transaction: t });
+
+        await t.commit();
+        
+        if (req.session.user && req.session.user.id === user.id) {
+            req.session.user.fan_coins = user.fan_coins;
+        }
+
+        res.json({ message: `¡Compra exitosa!`, newBalance: user.fan_coins });
+
+    } catch (error) {
+        await t.rollback();
+        res.status(500).json({ message: 'Error en la compra.', error: error.message });
+    }
+});
+
+app.post('/api/votos', async (req, res) => {
+    const { usuario_id, opcion_id } = req.body;
+    try {
+        
+        const opcion = await Opcion.findByPk(opcion_id);
+        const newVoto = await Voto.create({ usuario_id, opcion_id });
+        
+        let mensaje = "Voto registrado.";
+        let coinsGanadas = 0;
+
+        if (opcion && opcion.es_correcta) {
+            const user = await User.findByPk(usuario_id);
+            coinsGanadas = 50; 
+            user.fan_coins += coinsGanadas;
+            await user.save();
+            mensaje = "¡Correcto! Ganaste 50 FanCoins.";
+            
+
+            if (req.session.user && req.session.user.id === user.id) {
+                req.session.user.fan_coins = user.fan_coins;
+            }
+        }
+
+        res.status(201).json({ 
+            voto: newVoto, 
+            message: mensaje,
+            coinsGanadas,
+            esCorrecta: opcion.es_correcta 
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al votar', error: error.message });
+    }
+});
+
+
 
 
 db.sequelize.sync()

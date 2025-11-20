@@ -21,6 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    if (currentUser) {
+        const tiendaLink = document.createElement('a');
+        tiendaLink.href = 'tienda.html'; 
+        tiendaLink.className = 'dropdown-item';
+        tiendaLink.innerHTML = `<i class="fa-solid fa-store"></i><span>Tienda Virtual</span>`;
+        
+        const divider = dropdownMenu.querySelector('.dropdown-divider');
+        if (divider) {
+            dropdownMenu.insertBefore(tiendaLink, divider);
+        }
+    }
+
     if (userAvatarIcon) {
         userAvatarIcon.addEventListener('click', (event) => {
             event.stopPropagation(); 

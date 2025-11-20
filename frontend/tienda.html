@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda Virtual - Cup26</title>
+    
+    <link rel="stylesheet" href="home.css"> 
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="tienda.css"> 
+</head>
+<body>
+    <header>
+        <div class="countdown-banner">
+            <span>🏆 WORLD CUP 2026 IN 232:12:12:12 🏆</span>
+        </div>
+        <div class="top-bar">
+            <a href="home.html" style="text-decoration: none; color: inherit;">
+                <h2 class="logo">Cup26</h2>
+            </a>
+            <div class="top-bar-icons">
+                <div class="search-container">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="search" id="search-input" placeholder="Buscar encuestas...">
+                    <div id="search-results" class="search-results-container"></div>
+                </div>
+
+                <div class="user-menu-container">
+                    <img id="user-avatar-top" src="" alt="User Avatar" class="profile-avatar-icon">
+
+                    <div id="user-dropdown-menu" class="dropdown-menu">
+                        <a href="perfil.html" class="dropdown-item">
+                            <i class="fa-solid fa-user"></i>
+                            <span>Ver Perfil</span>
+                        </a>
+                        <a href="home.html" class="dropdown-item">
+                            <i class="fa-solid fa-house"></i>
+                            <span>Ir al Feed</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <div id="logout-btn" class="dropdown-item">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Cerrar Sesión</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container" style="display: block; max-width: 1000px;">
+        
+        <div class="shop-header">
+            <h1 class="shop-title"><i class="fa-solid fa-store"></i> Tienda Virtual</h1>
+            <div class="coin-balance">
+                <i class="fa-solid fa-coins"></i>
+                <span id="user-balance">Cargando...</span>
+            </div>
+        </div>
+
+        <div id="shop-container" class="shop-grid">
+            <p style="color: white; text-align: center; width: 100%; font-size: 1.2rem;">Cargando artículos de la tienda...</p>
+        </div>
+
+    </div>
+
+    <script src="nav.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Obtener usuario de memoria
+            let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (!currentUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // 2. Cargar Avatar
+            const userAvatarTop = document.getElementById('user-avatar-top');
+            if(userAvatarTop) {
+                const serverUrl = 'http://localhost:3000';
+                userAvatarTop.src = currentUser.foto_perfil_url 
+                    ? `${serverUrl}${currentUser.foto_perfil_url}` 
+                    : 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
+            }
+
+            // --- NUEVO: OBTENER SALDO REAL DEL SERVIDOR ---
+            try {
+                const userResponse = await fetch(`http://localhost:3000/api/users/${currentUser.id}`);
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    
+                    // Actualizamos el saldo visualmente y en la memoria
+                    currentUser.fan_coins = userData.fan_coins; 
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    document.getElementById('user-balance').textContent = userData.fan_coins;
+                }
+            } catch (err) {
+                console.error("Error actualizando saldo:", err);
+                // Si falla, mostramos lo que haya en memoria
+                document.getElementById('user-balance').textContent = currentUser.fan_coins || 0;
+            }
+
+            const container = document.getElementById('shop-container');
+            try {
+                const response = await fetch('http://localhost:3000/api/shop');
+                if(!response.ok) throw new Error("Error de servidor");
+                const items = await response.json();
+                
+                container.innerHTML = items.length === 0 
+                    ? '<p style="color:white; width:100%; text-align:center;">Tienda vacía</p>' 
+                    : '';
+
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'shop-card';
+                    card.innerHTML = `
+                        <img src="${item.imagen_preview_url}" alt="${item.nombre_premio}">
+                        <div class="item-name">${item.nombre_premio}</div>
+                        <div class="item-type">${item.tipo_premio.replace('_', ' ')}</div>
+                        <div class="item-price">
+                            <i class="fa-solid fa-coins"></i> ${item.costo_en_fancoins}
+                        </div>
+                        <button class="btn-buy" onclick="comprarItem(${item.id}, ${item.costo_en_fancoins}, '${item.nombre_premio}')">
+                            Adquirir
+                        </button>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                container.innerHTML = `<p style="color: #ff00ff; text-align: center;">Error de conexión con la tienda.</p>`;
+            }
+        });
+
+        async function comprarItem(premioId, costo, nombre) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const saldo = parseInt(currentUser.fan_coins) || 0;
+
+            if (saldo < costo) {
+                alert(`No tienes suficientes monedas. Tienes ${saldo} y cuesta ${costo}.`);
+                return;
+            }
+
+            if (!confirm(`¿Comprar "${nombre}" por ${costo} monedas?`)) return;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/shop/buy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        usuario_id: currentUser.id, 
+                        premio_id: premioId 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert("¡Compra exitosa! 🎉");
+                    
+                    // Actualizamos todo de inmediato
+                    currentUser.fan_coins = data.newBalance;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    document.getElementById('user-balance').textContent = data.newBalance;
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (error) {
+                alert('Error de conexión al procesar la compra.');
+            }
+        }
+    </script>
+
+</body>
+</html>

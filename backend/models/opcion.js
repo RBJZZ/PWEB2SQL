@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     imagen_url: {
         type: DataTypes.STRING(512),
-        allowNull: true // Permite que sea nulo para opciones de solo texto
+        allowNull: true 
     },
     es_correcta: {
         type: DataTypes.BOOLEAN,

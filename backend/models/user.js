@@ -21,6 +21,11 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 'usuario',
         allowNull: false
     },
+    fan_coins: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: false
+    },
     foto_perfil_url: {
         type: DataTypes.STRING(512),
     },
