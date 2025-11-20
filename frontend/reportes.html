@@ -2,119 +2,224 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reportes - Cup26</title>
+    <title>Leaderboard - Cup26</title>
     <link rel="stylesheet" href="home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        .reports-container {
+        /* Diseño de Podio */
+        .leaderboard-grid {
             max-width: 1100px;
             margin: 30px auto;
             display: grid;
-            grid-template-columns: 1fr 1fr; 
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 30px;
         }
-        .report-card {
+
+        .rank-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 16px;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e4e6eb;
+        }
+
+        .rank-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
         }
-        .report-card h3 {
+        .rank-header h3 { margin: 0; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 1px; }
+        .rank-header i { font-size: 2rem; margin-bottom: 10px; display: block; }
+
+        .rank-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        .rank-item:last-child { border-bottom: none; }
+        .rank-item:hover { background-color: #f8f9fa; }
+
+        /* Posiciones */
+        .rank-pos {
+            font-size: 1.5rem;
+            font-weight: 900;
+            width: 40px;
+            text-align: center;
+            margin-right: 15px;
+            color: #bca1f7;
+        }
+        /* Medallas para el Top 3 */
+        .rank-item:nth-child(1) .rank-pos { content: "🥇"; font-size: 2rem; } 
+        .rank-item:nth-child(2) .rank-pos { content: "🥈"; font-size: 2rem; } 
+        .rank-item:nth-child(3) .rank-pos { content: "🥉"; font-size: 2rem; } 
+
+        /* Usuario */
+        .rank-user {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            gap: 12px;
+        }
+        .rank-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #eee;
+        }
+        .rank-info h4 { margin: 0; color: #1c1e21; font-size: 1rem; }
+        .rank-info span { font-size: 0.85rem; color: #606770; }
+
+        /* Valor numérico (Score) */
+        .rank-score {
+            font-size: 1.2rem;
+            font-weight: 800;
             color: #4a00e0;
-            border-bottom: 2px solid #f0f2f5;
-            padding-bottom: 10px;
-            margin-top: 0;
+            background: #f0f2f5;
+            padding: 5px 12px;
+            border-radius: 20px;
         }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #666; padding: 10px; font-size: 0.9rem; }
-        td { padding: 10px; border-bottom: 1px solid #eee; color: #333; }
-        .rank-num { font-weight: bold; color: #8e2de2; }
-        .user-cell { display: flex; align-items: center; gap: 10px; }
-        .mini-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
     </style>
 </head>
 <body>
     <header>
-        <div class="countdown-banner"><span>🏆 ESTADÍSTICAS DEL MUNDIAL 🏆</span></div>
+        <div class="countdown-banner"><span>🏆 SALÓN DE LA FAMA 🏆</span></div>
         <div class="top-bar">
             <a href="home.html" style="text-decoration: none; color: inherit;"><h2 class="logo">Cup26</h2></a>
-            <div class="top-bar-icons">
-                <a href="home.html" style="font-weight: bold; text-decoration: none; color: #666;">Volver al Inicio</a>
-            </div>
+            <div class="top-bar-icons"><a href="home.html" style="color:#666; text-decoration:none;">Volver</a></div>
         </div>
     </header>
 
-    <div class="reports-container">
+    <div class="leaderboard-grid">
         
-        <div class="report-card">
-            <h3>🧠 Top "Sabios" (Más Aciertos)</h3>
-            <table>
-                <thead><tr><th>#</th><th>Usuario</th><th>Aciertos</th></tr></thead>
-                <tbody id="table-top-users"><tr><td colspan="3">Cargando...</td></tr></tbody>
-            </table>
+        <div class="rank-card">
+            <div class="rank-header" style="background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%);">
+                <i class="fa-solid fa-brain"></i>
+                <h3>Sabios del Fútbol</h3>
+            </div>
+            <div class="rank-list" id="list-top-users">
+                <p style="text-align:center; padding:20px;">Cargando...</p>
+            </div>
         </div>
 
-        <div class="report-card">
-            <h3>🔥 Encuestas en Tendencia</h3>
-            <table>
-                <thead><tr><th>#</th><th>Pregunta</th><th>Votos Totales</th></tr></thead>
-                <tbody id="table-top-votes"><tr><td colspan="3">Cargando...</td></tr></tbody>
-            </table>
+        <div class="rank-card">
+            <div class="rank-header" style="background: linear-gradient(135deg, #00f2ea 0%, #ff00ff 100%);">
+                <i class="fa-solid fa-gem"></i>
+                <h3>Magnates de FanCoins</h3>
+            </div>
+            <div class="rank-list" id="list-richest">
+                <p style="text-align:center; padding:20px;">Cargando...</p>
+            </div>
         </div>
 
-        <div class="report-card">
-            <h3>💬 Temas más Discutidos</h3>
-            <table>
-                <thead><tr><th>#</th><th>Pregunta</th><th>Comentarios</th></tr></thead>
-                <tbody id="table-top-comments"><tr><td colspan="3">Cargando...</td></tr></tbody>
-            </table>
+        <div class="rank-card">
+            <div class="rank-header" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%);">
+                <i class="fa-solid fa-fire"></i>
+                <h3>Encuestas Virales</h3>
+            </div>
+            <div class="rank-list" id="list-top-votes">
+                <p style="text-align:center; padding:20px;">Cargando...</p>
+            </div>
         </div>
 
-        <div class="report-card">
-            <h3>💎 Usuarios Más Valiosos</h3>
-            <table>
-                <thead><tr><th>#</th><th>Usuario</th><th>Items</th><th>FanCoins</th></tr></thead>
-                <tbody id="table-richest"><tr><td colspan="4">Cargando...</td></tr></tbody>
-            </table>
+        <div class="rank-card">
+            <div class="rank-header" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);">
+                <i class="fa-solid fa-comments"></i>
+                <h3>Temas de Debate</h3>
+            </div>
+            <div class="rank-list" id="list-top-comments">
+                <p style="text-align:center; padding:20px;">Cargando...</p>
+            </div>
         </div>
 
     </div>
 
     <script>
-        async function loadReports() {
-            const endpoints = [
-                { url: '/api/reports/top-users', id: 'table-top-users', 
-                row: (d, i) => `<td><span class="rank-num">${i+1}</span></td><td class="user-cell"><img src="${d.foto_perfil_url ? ''+d.foto_perfil_url : 'https://i.pravatar.cc/150'}" class="mini-avatar"> ${d.nombre_usuario}</td><td>${d.aciertos}</td>` },
-                
-                { url: '/api/reports/top-posts-votes', id: 'table-top-votes', 
-                row: (d, i) => `<td>${i+1}</td><td>${d.texto_pregunta.substring(0, 30)}...</td><td><strong>${d.total_votos}</strong></td>` },
+        async function loadLeaderboards() {
+            const serverUrl = ''; // Ruta relativa
 
-                { url: '/api/reports/top-posts-comments', id: 'table-top-comments', 
-                row: (d, i) => `<td>${i+1}</td><td>${d.texto_pregunta.substring(0, 30)}...</td><td><strong>${d.total_comentarios}</strong></td>` },
-
-                { url: '/api/reports/richest-users', id: 'table-richest', 
-                row: (d, i) => `<td>${i+1}</td><td>${d.nombre_usuario}</td><td>${d.items_comprados}</td><td>💰 ${d.fan_coins}</td>` }
+            // Configuración de cada tabla
+            const configs = [
+                { 
+                    url: '/api/reports/top-users', 
+                    id: 'list-top-users',
+                    render: (d, i) => `
+                        <div class="rank-pos">${i+1}</div>
+                        <div class="rank-user">
+                            <img src="${d.foto_perfil_url ? serverUrl+d.foto_perfil_url : 'https://i.pravatar.cc/150'}" class="rank-avatar">
+                            <div class="rank-info"><h4>@${d.nombre_usuario}</h4><span>Experto</span></div>
+                        </div>
+                        <div class="rank-score">${d.aciertos} pts</div>`
+                },
+                { 
+                    url: '/api/reports/richest-users', 
+                    id: 'list-richest',
+                    render: (d, i) => `
+                        <div class="rank-pos">${i+1}</div>
+                        <div class="rank-user">
+                            <div class="rank-info"><h4>@${d.nombre_usuario}</h4><span>${d.items_comprados} ítems</span></div>
+                        </div>
+                        <div class="rank-score" style="color:#ffd700;">$${d.fan_coins}</div>`
+                },
+                { 
+                    url: '/api/reports/top-posts-votes', 
+                    id: 'list-top-votes',
+                    render: (d, i) => `
+                        <div class="rank-pos">${i+1}</div>
+                        <div class="rank-user">
+                            <div class="rank-info">
+                                <h4 style="font-size:0.9rem;">${d.texto_pregunta.substring(0, 40)}...</h4>
+                                <span>por @${d.nombre_usuario}</span>
+                            </div>
+                        </div>
+                        <div class="rank-score">${d.total_votos} <i class="fa-solid fa-check-to-slot" style="font-size:0.8rem;"></i></div>`
+                },
+                { 
+                    url: '/api/reports/top-posts-comments', 
+                    id: 'list-top-comments',
+                    render: (d, i) => `
+                        <div class="rank-pos">${i+1}</div>
+                        <div class="rank-user">
+                            <div class="rank-info">
+                                <h4 style="font-size:0.9rem;">${d.texto_pregunta.substring(0, 40)}...</h4>
+                            </div>
+                        </div>
+                        <div class="rank-score">${d.total_comentarios} <i class="fa-regular fa-comment" style="font-size:0.8rem;"></i></div>`
+                }
             ];
 
-            for (const item of endpoints) {
+            for (const cfg of configs) {
                 try {
-                    const res = await fetch('' + item.url);
+                    const res = await fetch(serverUrl + cfg.url);
                     const data = await res.json();
-                    const tbody = document.getElementById(item.id);
+                    const container = document.getElementById(cfg.id);
                     
                     if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="4">No hay datos suficientes.</td></tr>';
+                        container.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">Aún no hay datos.</p>';
                     } else {
-                        tbody.innerHTML = data.map((d, index) => `<tr>${item.row(d, index)}</tr>`).join('');
+                        container.innerHTML = data.map((d, index) => 
+                            `<div class="rank-item">
+                                ${cfg.render(d, index)}
+                            </div>`
+                        ).join('');
                     }
                 } catch (e) {
                     console.error(e);
                 }
             }
         }
-        loadReports();
+        loadLeaderboards();
     </script>
 </body>
 </html>

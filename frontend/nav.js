@@ -9,23 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    if (currentUser && currentUser.rol === 'admin') {
+    if (currentUser.rol === 'admin') {
         const adminLink = document.createElement('a');
         adminLink.href = 'admin.html';
         adminLink.className = 'dropdown-item';
         adminLink.innerHTML = `<i class="fa-solid fa-user-shield"></i><span>Panel Admin</span>`;
         
-        const reportLink = document.createElement('a');
-        reportLink.href = 'reportes.html';
-        reportLink.className = 'dropdown-item';
-        reportLink.innerHTML = `<i class="fa-solid fa-chart-line"></i><span>Reportes</span>`;
-
         const divider = dropdownMenu.querySelector('.dropdown-divider');
-        if (divider) {
-            dropdownMenu.insertBefore(adminLink, divider);
-            dropdownMenu.insertBefore(reportLink, divider);
-        }
+        if (divider) dropdownMenu.insertBefore(adminLink, divider);
     }
+
+    const leaderLink = document.createElement('a');
+    leaderLink.href = 'reportes.html'; 
+    leaderLink.className = 'dropdown-item';
+    leaderLink.innerHTML = `<i class="fa-solid fa-trophy" style="color:gold;"></i><span>Leaderboard</span>`; 
+    const divider = dropdownMenu.querySelector('.dropdown-divider');
+    if (divider) dropdownMenu.insertBefore(leaderLink, divider);
 
     if (currentUser) {
         const tiendaLink = document.createElement('a');
