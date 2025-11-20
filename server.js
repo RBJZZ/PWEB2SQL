@@ -167,7 +167,6 @@ app.put('/api/users/:id',
     }
 });
 
-
 app.get('/api/publicaciones', async (req, res) => {
     try {
         const publicaciones = await Publicacion.findAll({
@@ -357,7 +356,6 @@ app.get('/api/publicaciones/:id', async (req, res) => {
     }
 });
 
-
 app.post('/api/votos', async (req, res) => {
     const { usuario_id, opcion_id } = req.body;
     try {
@@ -525,9 +523,6 @@ app.post('/api/votos', async (req, res) => {
         res.status(500).json({ message: 'Error al votar', error: error.message });
     }
 });
-
-
-
 
 db.sequelize.sync()
     .then(() => {
