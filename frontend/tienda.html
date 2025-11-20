@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="tienda.css"> 
+    <link rel="stylesheet" href="perfil.css">
 </head>
 <body>
     <header>
@@ -115,22 +116,37 @@
                     ? '<p style="color:white; width:100%; text-align:center;">Tienda vacía</p>' 
                     : '';
 
-                items.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'shop-card';
-                    card.innerHTML = `
-                        <img src="${item.imagen_preview_url}" alt="${item.nombre_premio}">
-                        <div class="item-name">${item.nombre_premio}</div>
-                        <div class="item-type">${item.tipo_premio.replace('_', ' ')}</div>
-                        <div class="item-price">
-                            <i class="fa-solid fa-coins"></i> ${item.costo_en_fancoins}
-                        </div>
-                        <button class="btn-buy" onclick="comprarItem(${item.id}, ${item.costo_en_fancoins}, '${item.nombre_premio}')">
-                            Adquirir
-                        </button>
-                    `;
-                    container.appendChild(card);
-                });
+                const THEME_MAP = {
+                'Efecto Neón': 'effect-neon',
+                'Lluvia Dorada': 'effect-gold',
+                'Modo Cyberpunk': 'effect-glitch'
+            };
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'shop-card';
+                
+                let previewHTML = '';
+                
+                if (item.tipo_premio === 'TEMA_PERFIL') {
+                    const cssClass = THEME_MAP[item.nombre_premio] || '';
+                    previewHTML = `<div class="shop-preview-box ${cssClass}"></div>`;
+                } else {
+                    previewHTML = `<img src="${item.imagen_preview_url}" alt="${item.nombre_premio}">`;
+                }
+
+                card.innerHTML = `
+                    ${previewHTML} <div class="item-name">${item.nombre_premio}</div>
+                    <div class="item-type">${item.tipo_premio.replace('_', ' ')}</div>
+                    <div class="item-price">
+                        <i class="fa-solid fa-coins"></i> ${item.costo_en_fancoins}
+                    </div>
+                    <button class="btn-buy" onclick="comprarItem(${item.id}, ${item.costo_en_fancoins}, '${item.nombre_premio}')">
+                        Adquirir
+                    </button>
+                `;
+                container.appendChild(card);
+            });
             } catch (error) {
                 container.innerHTML = `<p style="color: #ff00ff; text-align: center;">Error de conexión con la tienda.</p>`;
             }

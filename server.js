@@ -108,10 +108,16 @@ app.get('/api/users/:id', async (req, res) => {
     try {
         const user = await User.findByPk(req.params.id, {
             attributes: ['id', 'username', 'email', 'fan_coins', 'foto_perfil_url', 'foto_portada_url', 'fecha_registro'],
-            include: [{
-                model: Publicacion,
-                include: [Opcion]
-            }],
+            include: [
+                {
+                    model: Publicacion,
+                    include: [Opcion]
+                },
+                {
+                    model: db.Premio,
+                    through: { attributes: [] } 
+                }
+            ],
             order: [[Publicacion, 'id', 'DESC']]
         });
         if (!user) {
@@ -119,6 +125,7 @@ app.get('/api/users/:id', async (req, res) => {
         }
         res.json(user);
     } catch (error) {
+        console.error(error); // Agrega esto para ver errores en consola si fallara
         res.status(500).json({ message: 'Error en el servidor.', error: error.message });
     }
 });
