@@ -83,7 +83,7 @@
             // 2. Cargar Avatar
             const userAvatarTop = document.getElementById('user-avatar-top');
             if(userAvatarTop) {
-                const serverUrl = 'http://localhost:3000';
+                const serverUrl = '';
                 userAvatarTop.src = currentUser.foto_perfil_url 
                     ? `${serverUrl}${currentUser.foto_perfil_url}` 
                     : 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
@@ -91,7 +91,7 @@
 
             // --- NUEVO: OBTENER SALDO REAL DEL SERVIDOR ---
             try {
-                const userResponse = await fetch(`http://localhost:3000/api/users/${currentUser.id}`);
+                const userResponse = await fetch(`/api/users/${currentUser.id}`);
                 if (userResponse.ok) {
                     const userData = await userResponse.json();
                     
@@ -108,7 +108,7 @@
 
             const container = document.getElementById('shop-container');
             try {
-                const response = await fetch('http://localhost:3000/api/shop');
+                const response = await fetch('/api/shop');
                 if(!response.ok) throw new Error("Error de servidor");
                 const items = await response.json();
                 
@@ -164,7 +164,7 @@
             if (!confirm(`¿Comprar "${nombre}" por ${costo} monedas?`)) return;
 
             try {
-                const response = await fetch('http://localhost:3000/api/shop/buy', {
+                const response = await fetch('/api/shop/buy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 

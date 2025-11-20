@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchPost() {
         try {
-            const response = await fetch(`http://localhost:3000/api/publicaciones/${postId}?userId=${currentUser.id}`);
+            const response = await fetch(`/api/publicaciones/${postId}?userId=${currentUser.id}`);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'No se pudo cargar la publicación');
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const author = pub.User || { username: 'Anónimo', foto_perfil_url: null };
         const options = pub.Opcions || [];
         const comments = pub.Comentarios || [];
-        const serverUrl = 'http://localhost:3000';
+        const serverUrl = '';
 
         const authorAvatar = author.foto_perfil_url ? `${serverUrl}${author.foto_perfil_url}` : `https://i.pravatar.cc/40?u=${author.username}`;
         
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!texto_comentario) return;
 
             try {
-                const response = await fetch('http://localhost:3000/api/comentarios', {
+                const response = await fetch('/api/comentarios', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const commentElement = document.createElement('div');
                 commentElement.className = 'comment';
                 
-                const serverUrl = 'http://localhost:3000';
+                const serverUrl = '';
                 const newCommentAvatar = commentAuthor.foto_perfil_url 
                     ? `${serverUrl}${commentAuthor.foto_perfil_url}` 
                     : `https://i.pravatar.cc/32?u=${commentAuthor.username}`;
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (votableElement) {
                     const optionId = votableElement.dataset.optionId;
                     try {
-                        await fetch('http://localhost:3000/api/votos', {
+                        await fetch('/api/votos', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ usuario_id: currentUser.id, opcion_id: optionId })

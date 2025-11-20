@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 1. CARGAR DATOS ---
     async function loadProfileData() {
         try {
-            const response = await fetch(`http://localhost:3000/api/users/${targetUserId}`);
+            const response = await fetch(`/api/users/${targetUserId}`);
             if (!response.ok) throw new Error('Usuario no encontrado.');
             
             userData = await response.json();
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<button id="edit-profile-btn" class="btn-edit-profile"><i class="fa-solid fa-pencil"></i> Editar Perfil</button>`
             : ''; 
 
-        const serverUrl = 'http://localhost:3000';
+        const serverUrl = '';
         const avatarUrl = user.foto_perfil_url ? `${serverUrl}${user.foto_perfil_url}` : 'https://i.pravatar.cc/150';
         const coverImageUrl = user.foto_portada_url ? `url(${serverUrl}${user.foto_portada_url})` : '';
 
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openEditModal() {
         usernameInput.value = userData.username;
-        const serverUrl = 'http://localhost:3000';
+        const serverUrl = '';
         
         avatarPreview.src = userData.foto_perfil_url 
             ? `${serverUrl}${userData.foto_perfil_url}` 
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (coverFileInput.files[0]) formData.append('cover', coverFileInput.files[0]);
         
         try {
-            const response = await fetch(`http://localhost:3000/api/users/${currentUser.id}`, {
+            const response = await fetch(`/api/users/${currentUser.id}`, {
                 method: 'PUT',
                 body: formData 
             });

@@ -15,9 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
         adminLink.className = 'dropdown-item';
         adminLink.innerHTML = `<i class="fa-solid fa-user-shield"></i><span>Panel Admin</span>`;
         
+        const reportLink = document.createElement('a');
+        reportLink.href = 'reportes.html';
+        reportLink.className = 'dropdown-item';
+        reportLink.innerHTML = `<i class="fa-solid fa-chart-line"></i><span>Reportes</span>`;
+
         const divider = dropdownMenu.querySelector('.dropdown-divider');
         if (divider) {
             dropdownMenu.insertBefore(adminLink, divider);
+            dropdownMenu.insertBefore(reportLink, divider);
         }
     }
 

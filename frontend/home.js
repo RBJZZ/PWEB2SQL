@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchPublicaciones() {
         try {
-            const response = await fetch('http://localhost:3000/api/publicaciones');
+            const response = await fetch('/api/publicaciones');
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Error al cargar.');
             
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const authorUsername = pub.User ? pub.User.username : 'Anónimo';
                 const authorId = pub.User ? pub.User.id : '#';
-                const serverUrl = 'http://localhost:3000';
+                const serverUrl = '';
                 const avatarUrl = pub.User && pub.User.foto_perfil_url
                     ? `${serverUrl}${pub.User.foto_perfil_url}`
                     : `https://i.pravatar.cc/40?u=${authorUsername}`;
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!trendingContainer) return;
         try {
 
-            const response = await fetch('http://localhost:3000/api/publicaciones/trending');
+            const response = await fetch('/api/publicaciones/trending');
             
             if (!response.ok) {
                 throw new Error(`Error del servidor: ${response.statusText}`);
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('opciones', JSON.stringify(opciones));
 
         try {
-            const response = await fetch('http://localhost:3000/api/publicaciones', {
+            const response = await fetch('/api/publicaciones', {
                 method: 'POST',
                 body: formData
             });

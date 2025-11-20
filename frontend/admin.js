@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const serverUrl = 'http://localhost:3000';
+        const serverUrl = '';
 
         container.innerHTML = posts.map(post => {
             let optionsHTML = '';

@@ -531,6 +531,84 @@ app.post('/api/votos', async (req, res) => {
     }
 });
 
+// ENDPOINTS DE REPORTES
+
+app.get('/api/reports/top-users', async (req, res) => {
+    try {
+        const [results] = await db.sequelize.query(`
+            SELECT u.nombre_usuario, u.foto_perfil_url, COUNT(v.id) as aciertos
+            FROM usuarios u
+            JOIN votos v ON u.id = v.usuario_id
+            JOIN opciones o ON v.opcion_id = o.id
+            WHERE o.es_correcta = TRUE
+            GROUP BY u.id
+            ORDER BY aciertos DESC
+            LIMIT 5
+        `);
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ message: 'Error reporte usuarios' });
+    }
+});
+
+// 2. Publicaciones más Populares (Por número de votos)
+// Cruza: Publicaciones -> Opciones -> Votos
+app.get('/api/reports/top-posts-votes', async (req, res) => {
+    try {
+        const [results] = await db.sequelize.query(`
+            SELECT p.id, p.texto_pregunta, u.nombre_usuario, COUNT(v.id) as total_votos
+            FROM publicaciones p
+            JOIN usuarios u ON p.usuario_id = u.id
+            JOIN opciones o ON p.id = o.publicacion_id
+            LEFT JOIN votos v ON o.id = v.opcion_id
+            WHERE p.estado = 'aprobado'
+            GROUP BY p.id
+            ORDER BY total_votos DESC
+            LIMIT 5
+        `);
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ message: 'Error reporte votos' });
+    }
+});
+
+// 3. Temas más Discutidos (Por número de comentarios)
+// Cruza: Publicaciones -> Comentarios
+app.get('/api/reports/top-posts-comments', async (req, res) => {
+    try {
+        const [results] = await db.sequelize.query(`
+            SELECT p.id, p.texto_pregunta, COUNT(c.id) as total_comentarios
+            FROM publicaciones p
+            JOIN comentarios c ON p.id = c.publicacion_id
+            WHERE p.estado = 'aprobado'
+            GROUP BY p.id
+            ORDER BY total_comentarios DESC
+            LIMIT 5
+        `);
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ message: 'Error reporte comentarios' });
+    }
+});
+
+// 4. Usuarios más "Valiosos" (Monedas + Cantidad de Items Comprados)
+// Cruza: Usuarios -> Inventario
+app.get('/api/reports/richest-users', async (req, res) => {
+    try {
+        const [results] = await db.sequelize.query(`
+            SELECT u.nombre_usuario, u.fan_coins, COUNT(i.id) as items_comprados
+            FROM usuarios u
+            LEFT JOIN inventario_usuarios i ON u.id = i.usuario_id
+            GROUP BY u.id
+            ORDER BY u.fan_coins DESC
+            LIMIT 5
+        `);
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ message: 'Error reporte ricos' });
+    }
+});
+
 db.sequelize.sync()
     .then(() => {
         app.listen(port, () => {

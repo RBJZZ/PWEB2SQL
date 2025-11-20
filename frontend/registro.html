@@ -46,7 +46,7 @@
 
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (event) => {
-            event.preventDefault(); // Evita que el formulario se envíe de la forma tradicional
+            event.preventDefault(); 
 
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
@@ -61,7 +61,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/register', {
+                const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -71,15 +71,15 @@
 
                 const data = await response.json();
 
-                if (response.ok) { // Status 200-299
+                if (response.ok) {
                     messageEl.textContent = data.message;
-                    messageEl.style.color = '#00f2ea'; // Color cian para éxito
+                    messageEl.style.color = '#00f2ea'; 
                     setTimeout(() => {
-                        window.location.href = 'index.html'; // Redirigir al login tras 2 segundos
+                        window.location.href = 'index.html'; 
                     }, 2000);
                 } else {
                     messageEl.textContent = data.message;
-                    messageEl.style.color = '#ff00ff'; // Color fucsia para error
+                    messageEl.style.color = '#ff00ff'; 
                 }
 
             } catch (error) {
