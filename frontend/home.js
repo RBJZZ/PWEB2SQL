@@ -112,7 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         trendingContainer.innerHTML = posts.map(post => `
             <a href="publicacion.html?id=${post.id}" class="trending-item">
-                ${post.texto_pregunta}
+                <span class="trending-text">${post.texto_pregunta}</span>
+                
                 <span class="trending-item-votes">${post.votesCount} votos</span>
             </a>
         `).join('');
@@ -120,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function createOptionInput(optionNumber, pollType) {
         const div = document.createElement('div');
-
+        
         const radioHTML = `
             <div class="radio-wrapper" title="Marcar como respuesta correcta">
                 <input type="radio" name="correctOption" value="${optionNumber - 1}" ${optionNumber === 1 ? 'checked' : ''}>
@@ -140,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="poll-image-inputs">
-                    <input type="text" class="modal-input" placeholder="Descripción Opción ${optionNumber}" required>
+                    <input type="text" class="modal-input option-input" placeholder="Descripción Opción ${optionNumber}" required>
                     
                     <div class="file-upload-container">
                         <label for="file-input-${optionNumber}" class="btn-upload-small">

@@ -44,8 +44,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const totalVotes = options.reduce((sum, op) => sum + (parseInt(op.votosCount) || 0), 0);
                 optionsHTML = `<div class="post-options-images results">` + options.map(op => {
                     const percentage = totalVotes > 0 ? ((op.votosCount / totalVotes) * 100).toFixed(1) : 0;
+                    
+                    const isCorrect = op.es_correcta;
+                    const correctClass = isCorrect ? 'correct-answer-card' : '';
+                    const iconHTML = isCorrect ? '<div class="correct-icon"><i class="fa-solid fa-check"></i></div>' : '';
+
                     return `
-                        <div class="image-option-card">
+                        <div class="image-option-card ${correctClass}">
+                            ${iconHTML}
                             <div class="result-overlay" style="width: ${percentage}%;"></div>
                             <span class="result-percentage">${percentage}%</span>
                             <img src="${serverUrl}${op.imagen_url}" alt="${op.texto_opcion}">
@@ -65,10 +71,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const totalVotes = options.reduce((sum, op) => sum + (parseInt(op.votosCount) || 0), 0);
                 optionsHTML = options.map(op => {
                     const percentage = totalVotes > 0 ? ((op.votosCount / totalVotes) * 100).toFixed(1) : 0;
+                    
+                    const isCorrect = op.es_correcta;
+                    const correctStyle = isCorrect ? 'border: 2px solid #00b09b; background-color: rgba(0, 176, 155, 0.1);' : '';
+                    const iconHTML = isCorrect ? '<i class="fa-solid fa-check-circle" style="color: #00b09b; margin-right: 8px;"></i>' : '';
+
                     return `
-                    <div class="option-result-bar">
+                    <div class="option-result-bar" style="${correctStyle}">
                         <div class="percentage-bar" style="width: ${percentage}%;"></div>
-                        <span class="option-text">${op.texto_opcion}</span>
+                        <span class="option-text" style="z-index: 2; display:flex; align-items:center;">
+                            ${iconHTML} ${op.texto_opcion}
+                        </span>
                         <span class="percentage-text">${percentage}%</span>
                     </div>`;
                 }).join('');

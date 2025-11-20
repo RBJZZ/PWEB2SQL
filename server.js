@@ -759,7 +759,6 @@ app.get('/api/reports/top-users', async (req, res) => {
 });
 
 // 2. Publicaciones más Populares (Por número de votos)
-// Cruza: Publicaciones -> Opciones -> Votos
 app.get('/api/reports/top-posts-votes', async (req, res) => {
     try {
         const [results] = await db.sequelize.query(`
@@ -780,7 +779,6 @@ app.get('/api/reports/top-posts-votes', async (req, res) => {
 });
 
 // 3. Temas más Discutidos (Por número de comentarios)
-// Cruza: Publicaciones -> Comentarios
 app.get('/api/reports/top-posts-comments', async (req, res) => {
     try {
         const [results] = await db.sequelize.query(`
@@ -799,7 +797,6 @@ app.get('/api/reports/top-posts-comments', async (req, res) => {
 });
 
 // 4. Usuarios más "Valiosos" (Monedas + Cantidad de Items Comprados)
-// Cruza: Usuarios -> Inventario
 app.get('/api/reports/richest-users', async (req, res) => {
     try {
         const [results] = await db.sequelize.query(`
