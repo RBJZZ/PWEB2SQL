@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de Búsqueda - Cup26</title>
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="countdown-banner"><span>🏆 WORLD CUP 2026 IN 232:12:12:12 🏆</span></div>
+        <div class="top-bar">
+            <a href="home.html" style="text-decoration: none; color: inherit;"><h2 class="logo">Cup26</h2></a>
+            <div class="top-bar-icons">
+                <div class="search-container">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="search" id="search-input" placeholder="Buscar usuarios o temas...">
+                    <div id="search-results" class="search-results-container"></div>
+                </div>
+                <div class="user-menu-container">
+                    <img id="user-avatar-top" src="" class="profile-avatar-icon">
+                    <div id="user-dropdown-menu" class="dropdown-menu">
+                        <a href="perfil.html" class="dropdown-item"><i class="fa-solid fa-user"></i><span>Ver Perfil</span></a>
+                        <a href="home.html" class="dropdown-item"><i class="fa-solid fa-house"></i><span>Ir al Feed</span></a>
+                        <div class="dropdown-divider"></div>
+                        <div id="logout-btn" class="dropdown-item"><i class="fa-solid fa-right-from-bracket"></i><span>Cerrar Sesión</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <main class="feed-column" style="width: 100%; max-width: 800px; margin: 0 auto;">
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                <h2 style="margin: 0; color: #1c1e21;">Resultados para: <span id="query-display" style="color: #4a00e0;">...</span></h2>
+            </div>
+
+            <div id="search-results-feed">
+                <p style="text-align: center; margin-top: 40px;">Buscando...</p>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="nav.js"></script>
+    <script src="busqueda.js"></script>
+</body>
+</html>

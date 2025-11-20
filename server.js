@@ -52,6 +52,26 @@ const upload = multer({
     }
 });
 
+async function verificarLogro(usuario_id, nombreLogro) {
+    try {
+        const logro = await db.Premio.findOne({ where: { nombre_premio: nombreLogro } });
+        if (!logro) return;
+
+        const yaTiene = await db.Inventario.findOne({
+            where: { usuario_id, premio_id: logro.id }
+        });
+
+        if (!yaTiene) {
+            await db.Inventario.create({ usuario_id, premio_id: logro.id });
+            console.log(`¡Logro desbloqueado para usuario ${usuario_id}: ${nombreLogro}!`);
+            return true; 
+        }
+    } catch (error) {
+        console.error("Error verificando logro:", error);
+    }
+    return false;
+}
+
 app.post('/api/register', async (req, res) => {
     const { username, email, password } = req.body;
     if (!username || !email || !password) {
@@ -222,8 +242,21 @@ app.post('/api/publicaciones', upload.array('option_images', 4), async (req, res
 
         await Opcion.bulkCreate(opcionesACrear, { transaction: t });
 
+        const user = await User.findByPk(usuario_id, { transaction: t });
+        user.fan_coins += 20; // Premio por publicar
+        await user.save({ transaction: t });
+
         await t.commit();
-        res.status(201).json({ message: 'Publicación creada exitosamente.' });
+        if (req.session.user && req.session.user.id === user.id) {
+            req.session.user.fan_coins = user.fan_coins;
+        }
+
+        const countPosts = await Publicacion.count({ where: { usuario_id } });
+        if (countPosts === 1) { // Es el primero que acaba de crear
+            await verificarLogro(usuario_id, 'Primer Post');
+        }
+
+        res.status(201).json({ message: 'Publicación creada. ¡Ganaste 20 FanCoins!' });
 
     } catch (error) {
         await t.rollback();
@@ -235,23 +268,32 @@ app.post('/api/publicaciones', upload.array('option_images', 4), async (req, res
 app.get('/api/publicaciones/buscar', async (req, res) => {
     const { q } = req.query;
 
-    if (!q || q.trim().length < 2) {
+    if (!q || q.trim().length < 1) {
         return res.json([]);
     }
 
     try {
         const resultados = await Publicacion.findAll({
             where: {
-                texto_pregunta: {
-                    [Op.like]: `%${q}%`
-                },
-                estado: 'aprobado'
+                estado: 'aprobado',
+                [Op.or]: [
+                    { texto_pregunta: { [Op.like]: `%${q}%` } },
+                    { '$User.nombre_usuario$': { [Op.like]: `%${q}%` } }
+                ]
             },
-            include: [{ model: User, attributes: ['username'] }],
-            limit: 5 
+            include: [
+                { 
+                    model: User, 
+                    attributes: ['id', 'username', 'foto_perfil_url'],
+                    as: 'User' 
+                },
+                { model: Opcion } 
+            ],
+            order: [['fecha_creacion', 'DESC']]
         });
         res.json(resultados);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Error al realizar la búsqueda.' });
     }
 });
@@ -380,6 +422,14 @@ app.post('/api/comentarios', async (req, res) => {
     }
     try {
         const nuevoComentario = await Comentario.create({ usuario_id, publicacion_id, texto_comentario });
+
+        const user = await User.findByPk(usuario_id);
+        user.fan_coins += 5;
+        await user.save();
+        
+        if (req.session.user && req.session.user.id === user.id) {
+            req.session.user.fan_coins = user.fan_coins;
+        }
         
         const comentarioCompleto = await Comentario.findByPk(nuevoComentario.id, {
             include: [{ 
@@ -387,6 +437,11 @@ app.post('/api/comentarios', async (req, res) => {
                 attributes: ['id', 'username', 'foto_perfil_url']
             }]
         });
+
+        const countComments = await Comentario.count({ where: { usuario_id } });
+        if (countComments >= 5) { 
+            await verificarLogro(usuario_id, 'Comentarista');
+        }
 
         res.status(201).json(comentarioCompleto);
     } catch (error) {
@@ -443,7 +498,13 @@ app.put('/api/admin/publicaciones/:id/estado', isAdmin, async (req, res) => {
 
 app.get('/api/shop', async (req, res) => {
     try {
-        const premios = await db.Premio.findAll();
+        const premios = await db.Premio.findAll({
+            where: {
+                costo_en_fancoins: {
+                    [Op.lt]: 10000 
+                }
+            }
+        });
         res.json(premios);
     } catch (error) {
         res.status(500).json({ message: 'Error al cargar la tienda.' });
@@ -501,7 +562,12 @@ app.post('/api/votos', async (req, res) => {
     const { usuario_id, opcion_id } = req.body;
     try {
         
-        const opcion = await Opcion.findByPk(opcion_id);
+        const opcion = await Opcion.findByPk(opcion_id, {
+            include: [{ model: Publicacion }] 
+        });
+
+        if (!opcion) return res.status(404).json({ message: 'Opción no encontrada' });
+
         const newVoto = await Voto.create({ usuario_id, opcion_id });
         
         let mensaje = "Voto registrado.";
@@ -517,6 +583,16 @@ app.post('/api/votos', async (req, res) => {
 
             if (req.session.user && req.session.user.id === user.id) {
                 req.session.user.fan_coins = user.fan_coins;
+            }
+        }
+
+        const autorId = opcion.Publicacion.usuario_id;
+        
+        if (autorId != usuario_id) {
+            const autor = await User.findByPk(autorId);
+            if (autor) {
+                autor.fan_coins += 2; 
+                await autor.save();
             }
         }
 

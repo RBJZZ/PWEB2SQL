@@ -66,17 +66,14 @@ const searchInput = document.getElementById('search-input');
     let searchTimeout;
 
     if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const query = searchInput.value;
-                if (query.length > 1) {
-                    performSearch(query);
-                } else {
-                    searchResultsContainer.style.display = 'none';
-                }
-            }, 300);
-        });
+        searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const query = searchInput.value.trim();
+            if (query.length > 0) {
+                window.location.href = `busqueda.html?q=${encodeURIComponent(query)}`;
+            }
+        }
+    });
 
         document.addEventListener('click', (e) => {
             if (!searchInput.contains(e.target)) {

@@ -124,10 +124,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Insignias
         if (insignias.length > 0) {
-            html += `<h4 style="color:#666; margin-bottom:10px; margin-top:20px;">Insignias</h4>
-                    <div class="achievements-icons" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-                        ${insignias.map(p => `<img src="${p.imagen_preview_url}" title="${p.nombre_premio}" style="width:40px; height:40px;">`).join('')}
-                    </div>`;
+            html += `<h4 style="color:#666; margin-bottom:15px; margin-top:20px; text-align: center; width: 100%;">
+                        <i class="fa-solid fa-medal" style="color: #ffd700;"></i> Mis Insignias
+                     </h4>
+                     <div class="achievements-icons" style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap; margin-bottom: 20px;">
+                        ${insignias.map(p => `
+                            <div class="badge-item" title="${p.nombre_premio}">
+                                <img src="${p.imagen_preview_url}" alt="${p.nombre_premio}">
+                            </div>
+                        `).join('')}
+                     </div>`;
         }
 
         if (currentUser.id == user.id) {
