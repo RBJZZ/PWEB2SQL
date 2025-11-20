@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     fan_coins: {
         type: DataTypes.INTEGER,
-        defaultValue: 0,
+        defaultValue: 5000,
         allowNull: false
     },
     foto_perfil_url: {
