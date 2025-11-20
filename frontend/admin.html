@@ -63,12 +63,46 @@
             font-size: 0.9rem;
             font-weight: 600;
         }
+
+        /* Grid para usuarios */
+        .user-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .user-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #e4e6eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .user-card:hover { transform: translateY(-2px); }
+
+        .user-card-info { display: flex; align-items: center; gap: 12px; }
+        .user-card-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #f0f2f5; }
+        
+        .role-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .role-admin { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .role-user { background: #f0f2f5; color: #606770; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
     <header>
         <div class="countdown-banner">
-            <span>🏆 WORLD CUP 2026 IN 232:12:12:12 🏆</span>
+            <div id="countdown-text" class="ticker-content">Cargando tiempo para el Mundial...</div>
         </div>
         <div class="top-bar">
             <a href="home.html" style="text-decoration: none; color: inherit;">
@@ -103,6 +137,22 @@
         <h1>Panel de Moderación</h1>
         <p>Aquí puedes aprobar o rechazar las publicaciones pendientes creadas por los usuarios.</p>
         <div id="pending-posts-container">
+        </div>
+
+        <div style="margin-top: 60px; border-top: 2px dashed #e4e6eb; padding-top: 40px;">
+            <div class="admin-header">
+                <h1><i class="fa-solid fa-users-gear"></i> Gestión de Usuarios</h1>
+                <p>Controla quién tiene acceso al panel de administración.</p>
+            </div>
+            
+            <div style="max-width: 400px; margin: 0 auto 30px auto; position: relative;">
+                <i class="fa-solid fa-search" style="position: absolute; left: 15px; top: 12px; color: #999;"></i>
+                <input type="text" id="user-search-input" placeholder="Buscar por nombre o correo..." 
+                        style="width: 100%; padding: 10px 15px 10px 40px; border-radius: 20px; border: 1px solid #ddd; outline: none; font-size: 1rem;">
+            </div>
+            <div id="user-list-container" class="user-list-grid">
+                <p style="text-align: center;">Cargando usuarios...</p>
+            </div>
         </div>
     </main>
     <script src="nav.js"></script>

@@ -19,6 +19,8 @@
     background-image: url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1935&auto=format&fit=crop');
     background-size: cover;
     background-position: center;
+    position: relative;
+    overflow: hidden;   
 }
 
 /* El avatar grande del usuario */
@@ -137,39 +139,112 @@
     background-color: #e4e6eb;
 }
 
-/* Ajustes para el modal de edición */
-#edit-profile-modal .modal-content {
+/* ========================================= */
+/* ESTILOS DE LA MODAL (REDSEÑO)        */
+/* ========================================= */
+
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px); /* Efecto cristal desenfocado */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
     background: #fff;
     color: #1c1e21;
-    border-radius: 8px;
-    padding: 25px;
-    width: 500px;
+    border-radius: 24px; /* Bordes muy redondeados */
+    padding: 30px;
+    width: 450px;
     position: relative;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); /* Sombra profunda */
+    border: 1px solid rgba(255,255,255,0.5);
+    animation: slideIn 0.3s ease-out;
+    overflow: hidden;
 }
 
-#edit-profile-modal h2 {
-    color: #1c1e21;
+/* Header Simulado (Estilo al H2) */
+.modal-content h2 {
+    margin: -30px -30px 25px -30px; /* Pegado a los bordes */
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); /* Gradiente Naranja/Dorado */
+    color: white;
+    padding: 20px;
+    font-size: 1.5rem;
     text-align: center;
-    margin-top: 0;
+    font-weight: 800;
+    letter-spacing: 0.5px;
 }
 
-#edit-profile-modal .input-group input {
-    color: #1c1e21;
-    border-bottom: 2px solid #ccd0d5;
+/* Inputs con estilo flotante */
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
 }
 
-#edit-profile-modal .input-group label {
-    color: #606770;
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    background: #f9f9f9;
+    font-size: 1rem;
+    color: #333;
+    transition: all 0.3s;
+    box-sizing: border-box;
 }
 
-#edit-profile-modal .input-group input:focus ~ label,
-#edit-profile-modal .input-group input:valid ~ label {
-    color: #4a00e0;
+.input-group label {
+    position: absolute;
+    left: 15px;
+    top: 14px;
+    color: #999;
+    font-size: 0.9rem;
+    pointer-events: none;
+    transition: all 0.3s;
+    background: transparent;
 }
 
-#edit-profile-modal .input-group input:focus {
-    border-bottom-color: #4a00e0;
+/* Efecto Focus */
+.input-group input:focus,
+.input-group input:valid {
+    border-color: #fda085;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(253, 160, 133, 0.15);
+}
+
+.input-group input:focus ~ label,
+.input-group input:valid ~ label {
+    top: -10px;
+    left: 10px;
+    font-size: 0.8rem;
+    color: #fda085;
+    background: #fff;
+    padding: 0 5px;
+    font-weight: bold;
+}
+
+/* Botón Cerrar */
+.close-modal-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    color: rgba(255,255,255,0.8);
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 2;
+    transition: transform 0.2s;
+    line-height: 1;
+}
+.close-modal-btn:hover {
+    transform: rotate(90deg) scale(1.1);
+    color: #fff;
 }
 
 #edit-modal-message {
@@ -178,21 +253,7 @@
     font-weight: 600;
 }
 
-.avatar-preview-container {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-#avatar-preview {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #ddd;
-    background-color: #f0f2f5;
-}
-
-/* Contenedor del botón de subida de archivo */
+/* Botones dentro del modal */
 .file-input-wrapper {
     position: relative;
     overflow: hidden;
@@ -203,50 +264,102 @@
 }
 
 .btn-upload {
-    border: 1px solid #ccd0d5;
-    color: #333;
-    background-color: #f0f2f5;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    border: 2px dashed #ccd0d5;
+    color: #606770;
+    background-color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
     cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+}
+.btn-upload:hover {
+    border-color: #fda085;
+    color: #fda085;
+    background: #fff8f5;
 }
 
 .file-input-wrapper input[type=file] {
     position: absolute;
-    left: 0;
-    top: 0;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
+    left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;
 }
 
 .edit-label {
     display: block;
-    text-align: center;
-    font-weight: 600;
-    color: #606770;
-    margin-bottom: 10px;
+    text-align: left;
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 8px;
+    margin-left: 5px;
+    font-size: 0.9rem;
 }
 
-/* Vista previa de la portada */
-.cover-preview-container {
+/* Previews */
+.avatar-preview-container, .cover-preview-container {
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+#avatar-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    background-color: #f0f2f5;
 }
 
 #cover-preview {
     width: 100%;
-    height: 120px; /* Altura rectangular */
-    border-radius: 8px; /* Bordes redondeados */
+    height: 100px;
+    border-radius: 12px;
     object-fit: cover;
-    border: 3px solid #ddd;
+    border: 1px solid #eee;
     background-color: #f0f2f5;
 }
 
-/* Gamificación */
+/* Botón Guardar */
+.btn-main {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+    margin-top: 10px;
+}
+.btn-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+}
+
+/* Botón Eliminar Cuenta (Peligro) */
+#btn-delete-account {
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+#btn-delete-account:hover {
+    background: #ff4b2b !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(255, 75, 43, 0.3);
+}
+
+/* Animaciones */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+
+/* ========================================= */
+/* GAMIFICACIÓN Y EFECTOS          */
+/* ========================================= */
 
 .avatar-container {
     position: absolute;
@@ -279,18 +392,6 @@
     display: none; 
 }
 
-.equip-btn {
-    background: #4a00e0;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 0.7rem;
-    cursor: pointer;
-    margin-top: 5px;
-}
-.equip-btn:hover { background: #8e2de2; }
-
 .inventory-item-card {
     background: #f8f9fa;
     border: 1px solid #ddd;
@@ -303,12 +404,7 @@
     align-items: center;
 }
 
-.profile-banner {
-    position: relative;
-    overflow: hidden;   
-}
-
-/* --- EFECTO 1: NEÓN PULSANTE (Marco interno brillante) --- */
+/* --- EFECTO 1: NEÓN PULSANTE --- */
 .effect-neon::after {
     content: "";
     position: absolute;
@@ -324,7 +420,7 @@
     to { box-shadow: inset 0 0 40px #00f2ea, inset 0 0 80px #ff00ff; opacity: 1; }
 }
 
-/* --- EFECTO 2: LLUVIA DORADA (Brillitos cayendo) --- */
+/* --- EFECTO 2: LLUVIA DORADA --- */
 .effect-gold {
     position: relative;
 }
@@ -342,7 +438,6 @@
     z-index: 1;
     pointer-events: none;
 }
-
 .effect-gold::after {
     content: "";
     position: absolute;
@@ -357,7 +452,7 @@
     to { transform: translateY(200px); }
 }
 
-/* --- EFECTO 3: GLITCH / CYBERPUNK (Efecto TV antigua) --- */
+/* --- EFECTO 3: GLITCH --- */
 .effect-glitch::after {
     content: " ";
     display: block;
@@ -385,33 +480,32 @@
 .badge-item {
     width: 60px;
     height: 60px;
-    background: #fff; /* Fondo blanco para que el icono resalte */
-    border-radius: 50%; /* Círculo perfecto */
-    border: 2px solid #ffd700; /* Borde Dorado */
+    background: #fff; 
+    border-radius: 50%; 
+    border: 2px solid #ffd700; 
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
     position: relative;
-    cursor: help; /* Cursor de ayuda para indicar que hay tooltip */
+    cursor: help;
 }
 
 .badge-item:hover {
     transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 8px 15px rgba(255, 215, 0, 0.3); /* Resplandor dorado al pasar el mouse */
+    box-shadow: 0 8px 15px rgba(255, 215, 0, 0.3); 
     border-color: #ffae00;
 }
 
 .badge-item img {
-    width: 35px; /* Tamaño controlado del icono interno */
+    width: 35px; 
     height: 35px;
     object-fit: contain;
 }
 
-/* Tooltip personalizado simple (opcional, usa el title nativo por ahora) */
 .badge-item::after {
-    content: attr(title); /* Muestra el nombre del premio */
+    content: attr(title);
     position: absolute;
     bottom: -30px;
     left: 50%;

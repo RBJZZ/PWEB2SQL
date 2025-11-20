@@ -225,6 +225,30 @@ app.put('/api/users/:id',
     }
 });
 
+app.delete('/api/users/:id', async (req, res) => {
+    const userId = req.params.id;
+    
+    if (!req.session.user || (req.session.user.id != userId && req.session.user.rol !== 'admin')) {
+        return res.status(403).json({ message: 'No tienes permiso para realizar esta acción.' });
+    }
+
+    try {
+        const user = await User.findByPk(userId);
+        if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+        await user.destroy(); 
+
+        if (req.session.user.id == userId) {
+            req.session.destroy();
+        }
+
+        res.json({ message: 'Cuenta eliminada correctamente.' });
+    } catch (error) {
+        logEvent(`ERROR eliminando usuario ${userId}: ${error.message}`);
+        res.status(500).json({ message: 'Error al eliminar la cuenta.' });
+    }
+});
+
 app.get('/api/publicaciones', async (req, res) => {
     try {
         const publicaciones = await Publicacion.findAll({
@@ -438,6 +462,28 @@ app.get('/api/publicaciones/:id', async (req, res) => {
     }
 });
 
+app.delete('/api/publicaciones/:id', async (req, res) => {
+    const postId = req.params.id;
+    const currentUser = req.session.user;
+
+    if (!currentUser) return res.status(401).json({ message: 'No autorizado.' });
+
+    try {
+        const post = await Publicacion.findByPk(postId);
+        if (!post) return res.status(404).json({ message: 'Publicación no encontrada.' });
+
+        if (post.usuario_id != currentUser.id && currentUser.rol !== 'admin') {
+            return res.status(403).json({ message: 'No puedes borrar publicaciones ajenas.' });
+        }
+
+        await post.destroy();
+        res.json({ message: 'Publicación eliminada.' });
+    } catch (error) {
+        logEvent(`ERROR eliminando post ${postId}: ${error.message}`);
+        res.status(500).json({ message: 'Error al eliminar la publicación.' });
+    }
+});
+
 app.post('/api/votos', async (req, res) => {
     const { usuario_id, opcion_id } = req.body;
     try {
@@ -524,6 +570,54 @@ app.put('/api/admin/publicaciones/:id/estado', isAdmin, async (req, res) => {
         res.status(200).json({ message: `El estado de la publicación ${publicacion.id} fue actualizado a '${nuevoEstado}'.` });
     } catch (error) {
         res.status(500).json({ message: 'Error al actualizar el estado de la publicación.' });
+    }
+});
+
+app.get('/api/admin/users', isAdmin, async (req, res) => {
+    const { q } = req.query;
+    
+    const whereClause = {};
+    if (q && q.trim() !== '') {
+        whereClause[Op.or] = [
+            { username: { [Op.like]: `%${q}%` } }, 
+            { email: { [Op.like]: `%${q}%` } }     
+        ];
+    }
+
+    try {
+        const users = await User.findAll({
+            where: whereClause,
+            attributes: ['id', 'username', 'email', 'rol', 'foto_perfil_url'],
+            order: [['id', 'ASC']]
+        });
+        res.json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al obtener usuarios.' });
+    }
+});
+
+app.put('/api/admin/users/:id/rol', isAdmin, async (req, res) => {
+    const { nuevoRol } = req.body;
+    
+    // Validación básica
+    if (!['usuario', 'admin'].includes(nuevoRol)) {
+        return res.status(400).json({ message: 'Rol no válido.' });
+    }
+
+    try {
+        const user = await User.findByPk(req.params.id);
+        if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+        // Actualizar
+        user.rol = nuevoRol;
+        await user.save();
+        
+        logEvent(`Admin Action: El usuario ${user.username} ahora es ${nuevoRol}.`);
+        
+        res.json({ message: `Rol actualizado correctamente a ${nuevoRol}` });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar rol.' });
     }
 });
 

@@ -57,9 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Botones de Acción (Solo para el dueño)
         const actionButtons = currentUser.id == user.id 
             ? `<div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
-                 <button id="edit-profile-btn" class="btn-edit-profile" style="margin:0;"><i class="fa-solid fa-pencil"></i> Datos</button>
-                 <a href="personalizar.html" class="btn-edit-profile" style="text-decoration:none; background:#4a00e0; color:white; margin:0;"><i class="fa-solid fa-shirt"></i> Personalizar</a>
-               </div>`
+                <button id="edit-profile-btn" class="btn-edit-profile" style="margin:0;"><i class="fa-solid fa-pencil"></i> Datos</button>
+                <a href="personalizar.html" class="btn-edit-profile" style="text-decoration:none; background:#4a00e0; color:white; margin:0;"><i class="fa-solid fa-shirt"></i> Personalizar</a>
+                </div>`
             : ''; 
 
         const serverUrl = ''; // Ruta relativa
@@ -181,6 +181,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 reader.readAsDataURL(file);
             }
         });
+
+        const deleteBtn = document.getElementById('btn-delete-account');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', async () => {
+                if (confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsta acción borrará tu cuenta, tus monedas, tus posts y tu inventario para siempre.\n\nNo se puede deshacer.')) {
+                    try {
+                        const response = await fetch(`/api/users/${currentUser.id}`, { method: 'DELETE' });
+                        if (response.ok) {
+                            alert('Tu cuenta ha sido eliminada. Hasta luego. 👋');
+                            localStorage.removeItem('currentUser');
+                            window.location.href = 'index.html';
+                        } else {
+                            alert('Error al eliminar cuenta.');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            });
+        }
 
         editProfileForm.addEventListener('submit', handleProfileUpdate);
     }

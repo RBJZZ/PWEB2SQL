@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pollTypeSelect = document.getElementById('poll-type');
     const trendingContainer = document.getElementById('trending-polls-container');
 
-
     async function fetchPublicaciones() {
         try {
             const response = await fetch('/api/publicaciones');
@@ -43,6 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let optionsHTML = '';
                 const hasImages = pub.Opcions.some(op => op.imagen_url);
+                const isMyPost = pub.User && pub.User.id === currentUser.id;
+                
+                const deleteButtonHTML = isMyPost 
+                    ? `<button class="btn-delete-post" onclick="deletePost(event, ${pub.id})" style="background:none; border:none; color:#999; cursor:pointer; margin-left:auto;" title="Eliminar"><i class="fa-solid fa-trash"></i></button>` 
+                    : '';
 
                 if (hasImages) {
                     optionsHTML = `<div class="post-options-images">` + pub.Opcions.map(op => `
@@ -58,12 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 postElement.innerHTML = `
-                    <a href="perfil.html?id=${authorId}" class="post-link-header">
-                        <div class="post-header">
+                    <div class="post-header">
+                        <a href="perfil.html?id=${authorId}" class="post-link-header" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; flex-grow: 1;">
                             <img src="${avatarUrl}" alt="avatar" class="post-avatar">
                             <span class="post-author">@${authorUsername}</span>
-                        </div>
-                    </a>
+                        </a>
+                        ${deleteButtonHTML} 
+                    </div>
+
                     <a href="publicacion.html?id=${pub.id}" class="post-link-body">
                         <p class="post-question">${pub.texto_pregunta}</p>
                         ${optionsHTML}
@@ -184,7 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const optionTextInputs = document.querySelectorAll('.option-input');
         const optionImageInputs = document.querySelectorAll('.option-image-input');
 
-        const opciones = Array.from(optionTextInputs).map(input => ({ texto: input.value, es_correcta: false }));
+
+        const correctOptionInput = document.querySelector('input[name="correctOption"]:checked');
+        const correctIndex = correctOptionInput ? parseInt(correctOptionInput.value) : -1;
+
+        const opciones = Array.from(optionTextInputs).map((input, index) => ({ 
+            texto: input.value, 
+            es_correcta: index === correctIndex 
+        }));
 
         if (opciones.some(op => !op.texto.trim()) || opciones.length < 2) {
             modalMessage.textContent = 'Debes rellenar el texto de al menos 2 opciones.';
@@ -222,7 +235,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Carga Inicial ---
     fetchPublicaciones();
     fetchTrendingPolls();
 });
+
+window.deletePost = async (event, id) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if(!confirm('¿Quieres eliminar esta publicación?')) return;
+    
+    try {
+        const res = await fetch(`/api/publicaciones/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            alert('Publicación eliminada');
+            location.reload(); 
+        } else {
+            alert('No se pudo eliminar');
+        }
+    } catch (e) {
+        console.error(e);
+    }
+};
