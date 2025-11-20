@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -18,13 +19,26 @@ const Comentario = db.Comentario;
 const app = express();
 const port = 3000;
 
+const logFilePath = path.join(__dirname, 'server.log');
+
+function logEvent(message) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] ${message}\n`;
+    
+    console.log(logMessage.trim());
+
+    // Escribe en el archivo (modo 'append' para no borrar lo anterior)
+    fs.appendFile(logFilePath, logMessage, (err) => {
+        if (err) console.error("Error escribiendo en log:", err);
+    });
+}
+
 app.use(session({
     secret: 'tu-secreto-muy-seguro-aqui',
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false }
 }));
-
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -112,21 +126,26 @@ app.post('/api/login', async (req, res) => {
                 foto_perfil_url: user.foto_perfil_url,
                 rol: user.rol 
             };
+            logEvent(`Login Exitoso: Usuario ${user.email} (${user.id})`);
             res.status(200).json({
                 message: `¡Bienvenido de nuevo, ${user.username}!`,
                 user: req.session.user 
             });
         } else {
+            logEvent(`Login Fallido: Credenciales incorrectas para ${email}`);
             res.status(401).json({ message: 'Email o contraseña incorrectos.' });
         }
     } catch (error) {
+        logEvent(`ERROR CRÍTICO en Login: ${error.message}`);
         res.status(500).json({ message: 'Error en el servidor.', error: error.message });
     }
 });
 
 app.get('/api/users/:id', async (req, res) => {
     try {
-        const user = await User.findByPk(req.params.id, {
+        const userId = req.params.id;
+        
+        const user = await User.findByPk(userId, {
             attributes: ['id', 'username', 'email', 'fan_coins', 'foto_perfil_url', 'foto_portada_url', 'fecha_registro'],
             include: [
                 {
@@ -135,17 +154,29 @@ app.get('/api/users/:id', async (req, res) => {
                 },
                 {
                     model: db.Premio,
-                    through: { attributes: [] } 
+                    through: { attributes: [] }
                 }
             ],
             order: [[Publicacion, 'id', 'DESC']]
         });
-        if (!user) {
-            return res.status(404).json({ message: 'Usuario no encontrado.' });
-        }
-        res.json(user);
+
+        if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+        const aciertosCount = await Voto.count({
+            where: { usuario_id: userId },
+            include: [{
+                model: Opcion,
+                where: { es_correcta: true } 
+            }]
+        });
+
+        const userJSON = user.toJSON();
+        userJSON.total_aciertos = aciertosCount; 
+
+        res.json(userJSON);
+
     } catch (error) {
-        console.error(error); // Agrega esto para ver errores en consola si fallara
+        console.error(error);
         res.status(500).json({ message: 'Error en el servidor.', error: error.message });
     }
 });
@@ -256,11 +287,13 @@ app.post('/api/publicaciones', upload.array('option_images', 4), async (req, res
             await verificarLogro(usuario_id, 'Primer Post');
         }
 
+        logEvent(`Nueva Publicación: Usuario ${usuario_id} creó un post.`);
         res.status(201).json({ message: 'Publicación creada. ¡Ganaste 20 FanCoins!' });
 
     } catch (error) {
         await t.rollback();
         console.error("Error al crear publicación con imagen:", error);
+        logEvent(`ERROR creando publicación: ${error.message}`);
         res.status(500).json({ message: 'Error al crear la publicación.', error: error.message });
     }
 });
@@ -545,15 +578,19 @@ app.post('/api/shop/buy', async (req, res) => {
         await db.Inventario.create({ usuario_id, premio_id }, { transaction: t });
 
         await t.commit();
+
+        
         
         if (req.session.user && req.session.user.id === user.id) {
             req.session.user.fan_coins = user.fan_coins;
         }
 
+        logEvent(`Venta Tienda: Usuario ${usuario_id} compró item ${premio_id} por ${premio.costo_en_fancoins} monedas`);
         res.json({ message: `¡Compra exitosa!`, newBalance: user.fan_coins });
 
     } catch (error) {
         await t.rollback();
+        logEvent(`ERROR en Tienda: ${error.message}`);
         res.status(500).json({ message: 'Error en la compra.', error: error.message });
     }
 });
@@ -688,7 +725,9 @@ app.get('/api/reports/richest-users', async (req, res) => {
 db.sequelize.sync()
     .then(() => {
         app.listen(port, () => {
-            console.log(`Servidor API corriendo en http://localhost:${port}`);
+            const msg = `Servidor API corriendo en http://localhost:${port}`;
+            console.log(msg);
+            logEvent('--- INICIO DEL SERVIDOR ---');
         });
     })
     .catch(error => console.error('Error al sincronizar las tablas:', error));
