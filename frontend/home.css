@@ -849,7 +849,6 @@ header {
     color: #fff;
 }
 
-/* Separador punteado para el botón "Añadir" */
 .btn-add-option {
     border: 2px dashed #ccd0d5;
     background: transparent;

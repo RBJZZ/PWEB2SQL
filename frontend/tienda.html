@@ -72,7 +72,6 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Obtener usuario de memoria
             let currentUser = JSON.parse(localStorage.getItem('currentUser'));
             
             if (!currentUser) {
@@ -80,7 +79,6 @@
                 return;
             }
 
-            // 2. Cargar Avatar
             const userAvatarTop = document.getElementById('user-avatar-top');
             if(userAvatarTop) {
                 const serverUrl = '';
@@ -89,20 +87,17 @@
                     : 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
             }
 
-            // --- NUEVO: OBTENER SALDO REAL DEL SERVIDOR ---
             try {
                 const userResponse = await fetch(`/api/users/${currentUser.id}`);
                 if (userResponse.ok) {
                     const userData = await userResponse.json();
                     
-                    // Actualizamos el saldo visualmente y en la memoria
                     currentUser.fan_coins = userData.fan_coins; 
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     document.getElementById('user-balance').textContent = userData.fan_coins;
                 }
             } catch (err) {
                 console.error("Error actualizando saldo:", err);
-                // Si falla, mostramos lo que haya en memoria
                 document.getElementById('user-balance').textContent = currentUser.fan_coins || 0;
             }
 

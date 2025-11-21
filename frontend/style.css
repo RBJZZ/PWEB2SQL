@@ -5,11 +5,10 @@
 body {
     font-family: 'Exo 2', sans-serif;
     margin: 0;
-    /* Fondo de estadio con un overlay oscuro para que el contenido resalte */
     background-image: linear-gradient(rgba(10, 0, 20, 0.85), rgba(10, 0, 20, 0.85)), url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1935&auto=format&fit=crop');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed; /* Fija el fondo para que no se mueva con el scroll */
+    background-attachment: fixed; 
     color: #fff;
 }
 
@@ -22,12 +21,12 @@ body {
 
 .form-wrapper {
     width: 400px;
-    background: rgba(20, 20, 30, 0.7); /* Fondo de cristal esmerilado */
+    background: rgba(20, 20, 30, 0.7); 
     backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 15px;
     padding: 30px 40px;
-    box-shadow: 0 0 30px rgba(255, 0, 255, 0.3); /* Sombra neón */
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.3); 
 }
 
 /* --- Logo --- */
